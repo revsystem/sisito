@@ -113,7 +113,7 @@ GEM
     multi_json (1.13.1)
     multi_xml (0.6.0)
     multipart-post (2.0.0)
-    mysql2 (0.3.21)
+    mysql2 (0.5.4)
     nio4r (2.3.1)
     nokogiri (1.8.2)
       mini_portile2 (~> 2.3.0)
@@ -234,7 +234,7 @@ DEPENDENCIES
   kaminari
   listen (~> 3.0.5)
   momentjs-rails (>= 2.9.0)
-  mysql2 (~> 0.3.18)
+  mysql2 (~> 0.5.4)
   omniauth
   omniauth-google-oauth2
   pry-rails

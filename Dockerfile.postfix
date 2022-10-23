@@ -1,13 +1,9 @@
 FROM ubuntu:jammy-20221003
 
-RUN apt-get update && apt-get upgrade -y
-
-RUN apt-get install -y tzdata
-RUN cp /usr/share/zoneinfo/Asia/Tokyo /etc/localtime
-RUN dpkg-reconfigure -f noninteractive tzdata
-
 ARG DEBIAN_FRONTEND=noninteractive
-RUN apt-get install -y \
+
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
     build-essential \
     ruby \
     ruby-dev \
@@ -18,9 +14,13 @@ RUN apt-get install -y \
     libmysqlclient-dev \
     rsyslog \
     postfix \
-    s-nail && \
+    s-nail \
+    tzdata && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
+
+RUN cp /usr/share/zoneinfo/Asia/Tokyo /etc/localtime
+RUN dpkg-reconfigure -f noninteractive tzdata
 
 RUN gem install sisimai && \
     gem install mysql2 -v '0.5.4'

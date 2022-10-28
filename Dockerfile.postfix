@@ -15,7 +15,8 @@ RUN apt-get update && \
     rsyslog \
     postfix \
     s-nail \
-    tzdata && \
+    tzdata \
+    mailutils && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 

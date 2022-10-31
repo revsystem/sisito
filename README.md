@@ -34,8 +34,8 @@ docker-compose up
 
 ## Recommended System Requirements
 
-* Ruby 2.3
-* MySQL 5.6/5.7
+* Ruby 3.0.2/3.1.2
+* MySQL 8.0.31
 
 ## Bounced Mail Collect Script Example
 

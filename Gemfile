@@ -4,7 +4,7 @@ git_source(:github) do |repo_name|
   "https://github.com/#{repo_name}.git"
 end
 
-gem 'rails', '~> 5.1.0'
+gem 'rails', '~> 7.0.4'
 gem 'puma', '~> 3.0'
 gem 'sass-rails', '~> 5.0'
 gem 'uglifier', '>= 1.3.0'
@@ -34,7 +34,7 @@ gem 'c3-rails'
 gem 'kaminari'
 gem 'clipboard-rails'
 gem 'rack-health'
-gem 'sisimai', '>= 4.22.1'
+gem 'sisimai', '>= 4.25.14'
 
 gem 'omniauth'
 gem 'omniauth-google-oauth2'

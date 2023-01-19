@@ -12,7 +12,7 @@ It is [sisimai](http://libsisimai.org/) collected data frontend.
 ## Installation
 
 ```sh
-git clone https://github.com/winebarrel/sisito.git
+git clone https://github.com/revsystem/sisito.git
 cd sisito
 bundle install
 vi config/database.yml
@@ -23,19 +23,19 @@ bundle exec rails server
 ### Using docker
 
 ```sh
-git clone https://github.com/winebarrel/sisito.git
+git clone https://github.com/revsystem/sisito.git
 cd sisito
 docker-compose build
 docker-compose up
 # console: http://localhost:3000
 # mailcatcher: http://localhost:11080
-# api: `curl localhost:8080/blacklist` (see https://github.com/winebarrel/sisito-api#api)
+# api: `curl localhost:8080/blacklist` (see https://github.com/revsystem/sisito-api#api)
 ```
 
 ## Recommended System Requirements
 
 * Ruby 3.0.2/3.1.2
-* MySQL 8.0.31
+* MySQL => 8.0.31
 
 ## Bounced Mail Collect Script Example
 
@@ -194,7 +194,7 @@ $ curl -s localhost:3000/status | jq .
 
 ## Using Local Timezone
 
-Please fix [config/application.rb](https://github.com/winebarrel/sisito/blob/master/config/application.rb) as follows:
+Please fix [config/application.rb](https://github.com/revsystem/sisito/blob/master/config/application.rb) as follows:
 
 ```ruby
 module Sisito
@@ -207,9 +207,9 @@ module Sisito
 
 ## Customize Sisito
 
-see [config/sisito.yml](https://github.com/winebarrel/sisito/blob/master/config/sisito.yml)
+see [config/sisito.yml](https://github.com/revsystem/sisito/blob/master/config/sisito.yml)
 
 ## Related Links
 
 * http://libsisimai.org
-* https://github.com/winebarrel/sisito-api
+* https://github.com/revsystem/sisito-api

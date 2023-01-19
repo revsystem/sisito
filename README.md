@@ -5,9 +5,8 @@ It is [sisimai](http://libsisimai.org/) collected data frontend.
 
 ## Screenshot
 
-![](https://cdn.pbrd.co/images/PBJu7ECzS.png) &nbsp; ![](https://cdn.pbrd.co/images/PBJO0Ki4E.png)
-![](https://cdn.pbrd.co/images/PBK20BtTS.png) &nbsp; ![](https://cdn.pbrd.co/images/59YqgEhyv.png)
-![](https://cdn.pbrd.co/images/PBKp4yg4A.png)
+![Statistics](./public/Sisito_dashboard_01.png "Sisito_dashboard_01.png")  &nbsp; ![Bounce Mails](./public/Sisito_dashboard_02.png "Sisito_dashboard_02.png")
+
 
 ## Installation
 

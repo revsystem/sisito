@@ -35,10 +35,10 @@
           <tr>
             <td><%= whitelist_mail.recipient %></td>
             <td><%= whitelist_mail.senderdomain %></td>
-            <td><%= whitelist_mail.created_at.strftime('%-m/%-d %-H:%M') %></td>
+            <td><%= whitelist_mail.created_at.strftime('%Y/%m/%d %H:%M') %></td>
             <td>
               <% if whitelist_mail.max_bounce_mail_timestamp.present? %>
-                <%= whitelist_mail.max_bounce_mail_timestamp.strftime('%-m/%-d %-H:%M') %>
+                <%= whitelist_mail.max_bounce_mail_timestamp.strftime('%Y/%m/%d %H:%M') %>
                 <% if bounce_over?(whitelist_mail.created_at, whitelist_mail.max_bounce_mail_timestamp) %>
                   <span class="label label-warning">Bounce over</span>
                 <% end %>

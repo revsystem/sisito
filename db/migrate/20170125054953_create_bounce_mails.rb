@@ -11,7 +11,7 @@ class CreateBounceMails < ActiveRecord::Migration[5.0]
       t.string   "subject",                     null: false
       t.string   "messageid",                   null: false
       t.string   "smtpagent",                   null: false
-      t.boolean  "softbounce",                  null: false
+      t.boolean  "hardbounce",                  null: false
       t.string   "smtpcommand",                 null: false
       t.string   "destination",                 null: false
       t.string   "senderdomain",                null: false
@@ -32,7 +32,7 @@ class CreateBounceMails < ActiveRecord::Migration[5.0]
       t.index ["reason", "recipient"], name: "idx_reason_recipient", using: :btree
       t.index ["recipient"], name: "idx_recipient", using: :btree
       t.index ["senderdomain"], name: "idx_senderdomain", using: :btree
-      t.index ["softbounce", "recipient"], name: "idx_softbounce_recipient", using: :btree
+      t.index ["hardbounce", "recipient"], name: "idx_hardbounce_recipient", using: :btree
       t.index ["timestamp"], name: "idx_timestamp", using: :btree
     end
   end

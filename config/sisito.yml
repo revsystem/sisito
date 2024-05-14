@@ -19,7 +19,7 @@ header_links:
   "Bounce Reason": http://libsisimai.org/en/reason/
 #blacklisted_label_filter: |
 #  proc do |m|
-#    not m.softbounce or m.reason == "filtered"
+#    not m.hardbounce or m.reason == "filtered"
 #  end
 #whitelist_callback:
 #  whitelisted: path_to_script

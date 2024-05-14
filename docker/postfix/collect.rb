@@ -15,7 +15,7 @@ COLUMNS = %w(
   subject
   messageid
   smtpagent
-  softbounce
+  hardbounce
   smtpcommand
   destination
   senderdomain
@@ -49,7 +49,7 @@ def insert(mysql, data)
   mysql.query(sql)
 end
 
-mysql = Mysql2::Client.new(host: 'mysql', username: 'root', database: 'sisito_development')
+mysql = Mysql2::Client.new(host: 'mysql', username: 'root', database: 'sisito_development', reconnect: true)
 
 process(MAIL_DIR) do |data|
   insert(mysql, data)

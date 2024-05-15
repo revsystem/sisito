@@ -44,7 +44,7 @@
 <%= javascript_tag do %>
   c3.generate({
     bindto: '#count_by_date',
-    size: {height: 200},
+    size: {height: 300},
     data: {
       x: 'x',
       columns: [
@@ -57,7 +57,7 @@
     axis: {
       x: {
         type: 'timeseries',
-        tick: {format: '%-m/%d'}
+        tick: {format: '%m/%d'}
       }
     }
   });
@@ -67,10 +67,10 @@
   <%= javascript_tag do %>
     c3.generate({
       bindto: '#count_by_destination',
-      size: {height: 200},
+      size: {height: 300},
       data: {
         columns: <%= raw(
-          @count_by_destination.to_a.slice(0, 3)
+          @count_by_destination.to_a.slice(0, 10)
             .push(['etc', @count_by_destination.values.slice(3..-1).try(:sum)])
             .select {|_, v| v.present? }
             .inspect
@@ -85,10 +85,10 @@
   <%= javascript_tag do %>
     c3.generate({
       bindto: '#count_by_reason',
-      size: {height: 200},
+      size: {height: 300},
       data: {
         columns: <%= raw(
-          @count_by_reason.to_a.slice(0, 3)
+          @count_by_reason.to_a.slice(0, 10)
             .push(['etc', @count_by_reason.values.slice(3..-1).try(:sum)])
             .select {|_, v| v.present? }
             .inspect
@@ -105,7 +105,7 @@
   <%= javascript_tag do %>
     c3.generate({
       bindto: '#count_by_reason_date',
-      size: {height: 200},
+      size: {height: 300},
       data: {
         x: 'x',
         columns: [
@@ -120,7 +120,7 @@
       axis: {
         x: {
           type: 'timeseries',
-          tick: {format: '%-m/%d'}
+          tick: {format: '%m/%d'}
         }
       }
     });

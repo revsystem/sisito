@@ -33,8 +33,8 @@ docker-compose up
 
 ## Recommended System Requirements
 
-* Ruby 3.0.2/3.1.2
-* MySQL => 8.0.31
+* Ruby 3.1.2/3.3.2
+* MySQL 8.0.36
 
 ## Bounced Mail Collect Script Example
 
@@ -56,7 +56,7 @@ COLUMNS = %w(
   subject
   messageid
   smtpagent
-  softbounce
+  hardbounce
   smtpcommand
   destination
   senderdomain
@@ -71,10 +71,14 @@ COLUMNS = %w(
 MAIL_DIR = '/home/scott/Maildir/new'
 
 def process(path, **options)
-  Dir.mktmpdir do |tmpdir|
-    FileUtils.mv(Dir["#{path}/*"], tmpdir)
-    v = Sisimai.make(tmpdir, **options) || []
-    v.each {|e| yield(e) }
+  Dir.glob("#{path}/**/*").each do |entry|
+    next unless File.file?(entry)
+
+    Dir.mktmpdir do |tmpdir|
+      FileUtils.mv(entry, tmpdir)
+      v = Sisimai.rise(tmpdir, **options) || []
+      v.each {|e| yield(e) }
+    end
   end
 end
 
@@ -102,7 +106,7 @@ end
 #     subject,
 #     messageid,
 #     smtpagent,
-#     softbounce,
+#     hardbounce,
 #     smtpcommand,
 #     destination,
 #     senderdomain,
@@ -127,7 +131,7 @@ end
 #     /* subject        */  "subject-1503152383",
 #     /* messageid      */  "20170819141943.A58CC35A@43b36f28aa95",
 #     /* smtpagent      */  "MTA::Postfix",
-#     /* softbounce     */  0,
+#     /* hardbounce     */  0,
 #     /* smtpcommand    */  "",
 #     /* destination    */  "a.b.c",
 #     /* senderdomain   */  "43b36f28aa95",
@@ -143,7 +147,7 @@ end
 #     /* updated_at     */  NOW()
 #   )
 
-mysql = Mysql2::Client.new(host: 'db-server', username: 'root', database: 'sisito')
+mysql = Mysql2::Client.new(host: 'db-server', username: 'root', database: 'sisito', reconnect: true)
 
 process(MAIL_DIR) do |data|
   insert(mysql, data)

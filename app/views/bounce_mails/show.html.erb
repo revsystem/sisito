@@ -7,7 +7,7 @@
     <% end %>
     <br>
     <span class="small">
-      whitelisted_at: <%= @whitelist_mail.created_at.strftime('%-m/%-d %-H:%M') %>
+      whitelisted_at: <%= @whitelist_mail.created_at.strftime('%Y/%m/%d %H:%M') %>
     </span>
   <% end %>
   <% if blacklisted_label?(@bounce_mail) %>
@@ -32,7 +32,7 @@
         <% @history.each do |bounce_mail| %>
           <tr>
             <td>
-              <%= bounce_mail.timestamp.strftime('%-m/%-d %-H:%M') %>
+              <%= bounce_mail.timestamp.strftime('%Y/%m/%d %H:%M') %>
               <% if bounce_over?(@bounce_mail.max_whitelist_mail_created_at, bounce_mail.timestamp) %>
                 <span class="label label-warning">Bounce over</span>
               <% end %>

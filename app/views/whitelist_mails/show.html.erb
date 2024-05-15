@@ -4,7 +4,7 @@
   <span class="label label-success">Whitelisted</span>
   <br>
   <span class="small">
-    whitelisted_at: <%= @whitelist_mail.created_at.strftime('%-m/%-d %-H:%M') %>
+    whitelisted_at: <%= @whitelist_mail.created_at.strftime('%%-Y/-m/%-d %-H:%M') %>
   </span>
 </div>
 
@@ -25,7 +25,7 @@
         <% @history.each do |bounce_mail| %>
           <tr>
             <td>
-              <%= bounce_mail.timestamp.strftime('%-m/%-d %-H:%M') %>
+              <%= bounce_mail.timestamp.strftime('%Y/%m/%d %H:%M') %>
               <% if bounce_mail.timestamp > @whitelist_mail.created_at %>
                 <span class="label label-warning">Bounce over</span>
               <% end %>

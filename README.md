@@ -1,5 +1,4 @@
-Sisito
-================
+# Sisito
 
 It is [sisimai](http://libsisimai.org/) collected data frontend.
 
@@ -7,21 +6,27 @@ It is [sisimai](http://libsisimai.org/) collected data frontend.
 
 ![Statistics](./public/Sisito_dashboard_01.png "Sisito_dashboard_01.png")  &nbsp; ![Bounce Mails](./public/Sisito_dashboard_02.png "Sisito_dashboard_02.png")
 
-
 ## Installation
 
-```sh
+```console
 git clone https://github.com/revsystem/sisito.git
 cd sisito
+sudo apt-get update && sudo apt-get install -y default-libmysqlclient-dev libssl-dev libyaml-dev
 bundle install
 vi config/database.yml
 bundle exec rails db:create db:migrate
 bundle exec rails server
 ```
 
+If you need to access the application from outside the server, you can run the following command. You can access the application from `http://<server-ip>:1080`.
+
+```console
+bundle exec rails server -p 1080 -b 0.0.0.0
+```
+
 ### Using docker
 
-```sh
+```console
 git clone https://github.com/revsystem/sisito.git
 cd sisito
 docker-compose build
@@ -33,8 +38,8 @@ docker-compose up
 
 ## Recommended System Requirements
 
-* Ruby 3.1.2/3.3.2
-* MySQL 8.0.36
+* Ruby 3.1.2 or later
+* MySQL 8.0.36 or later
 
 ## Bounced Mail Collect Script Example
 

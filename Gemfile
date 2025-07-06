@@ -42,7 +42,7 @@ gem 'c3-rails', '~> 0.4.18'
 gem 'kaminari', '~> 1.2', '>= 1.2.2'
 gem 'clipboard-rails', '~> 1.7', '>= 1.7.1'
 gem 'rack-health', '~> 0.1.2'
-gem 'sisimai', '~> 5.2', '>= 5.2.1'
+gem 'sisimai', '~> 5.4', '>= 5.4.0'
 
 gem 'omniauth', '~> 2.1', '>= 2.1.2'
 gem 'omniauth-google-oauth2', '~> 1.1', '>= 1.1.2'

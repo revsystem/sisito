@@ -57,7 +57,8 @@ class BounceMailsController < ApplicationController
           @bounce_mails = @bounce_mails.where(addresser: @addresser)
         end
 
-        @bounce_mails = @bounce_mails.order(timestamp: :desc).page(params[:page])
+        # インデックスを活用するため、ORDER BYを最適化し、大量データでのページネーション改善
+        @bounce_mails = @bounce_mails.order(timestamp: :desc, id: :desc).page(params[:page])
         @mask = !Rails.application.config.sisito.fetch(:authz).fetch(:disable_mask)
       end
     end

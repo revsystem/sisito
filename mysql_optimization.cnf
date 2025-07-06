@@ -1,0 +1,48 @@
+# MySQL最適化設定 - Sisito用
+# /etc/mysql/mysql.conf.d/sisito_optimization.cnf あるいは/etc/mysql/mariadb.conf.d/sisito_optimization.cnfとして配置
+
+[mysqld]
+# 基本設定
+default_storage_engine = InnoDB
+character_set_server = utf8mb3
+collation_server = utf8mb3_general_ci
+
+# メモリ設定（大量データ処理用）
+innodb_buffer_pool_size = 2G        # 利用可能メモリの70-80%
+innodb_log_file_size = 256M
+innodb_log_buffer_size = 64M
+innodb_flush_log_at_trx_commit = 2   # パフォーマンス優先
+
+# 一時テーブル・ソート設定（GROUP BY最適化）
+tmp_table_size = 1G                  # 一時テーブルサイズ増加
+max_heap_table_size = 1G
+sort_buffer_size = 32M               # ソート処理用
+read_buffer_size = 8M
+read_rnd_buffer_size = 16M
+
+# JOIN処理最適化
+join_buffer_size = 32M
+
+# クエリキャッシュ（読み取り多用途）
+query_cache_type = 1
+query_cache_size = 512M
+query_cache_limit = 32M
+
+# 接続・スレッド設定
+max_connections = 200
+thread_cache_size = 50
+table_open_cache = 4000
+
+# スロークエリログ
+slow_query_log = 1
+slow_query_log_file = /var/log/mysql/mysql-slow.log
+long_query_time = 5                  # 5秒以上のクエリをログ
+
+# バイナリログ（必要に応じて無効化）
+# skip-log-bin
+
+# その他最適化
+innodb_flush_method = O_DIRECT
+innodb_file_per_table = 1
+innodb_read_io_threads = 8
+innodb_write_io_threads = 8

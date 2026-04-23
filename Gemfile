@@ -12,7 +12,6 @@ gem 'sass-rails', '~> 6.0'
 gem 'uglifier', '~> 4.2'
 gem 'coffee-rails', '~> 5.0'
 gem 'jquery-rails', '~> 4.6'
-gem 'turbolinks', '~> 5.2', '>= 5.2.1'
 gem 'jbuilder', '~> 2.12'
 
 # Rails 7.2でアセットパイプラインを有効にする

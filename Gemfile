@@ -9,7 +9,7 @@ gem 'mutex_m', '~> 0.2.0'
 gem 'rails', '~> 7.2', '>= 7.2.3.1'
 gem 'puma', '~> 6.4', '>= 6.4.2'
 gem 'sass-rails', '~> 6.0'
-gem 'uglifier', '~> 4.2'
+gem 'terser', '~> 1.2'
 gem 'jquery-rails', '~> 4.6'
 gem 'jbuilder', '~> 2.12'
 

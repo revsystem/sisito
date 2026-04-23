@@ -255,88 +255,88 @@ node = "22"  # LTS（執筆時点）
 
 ### Phase 0: 作業ブランチ作成
 
-- [ ] 0-1: `git checkout -b heads/Rails_v7.2.3.1` で作業ブランチ作成（既存規則 `heads/Rails_vX.Y.Z` 準拠）
-- [ ] 0-2: 既存の未コミット変更（Gemfile sisimai 更新、mise.toml、.claude/）を先行コミットする
+- [x] 0-1: `git checkout -b heads/Rails_v7.2.3.1` で作業ブランチ作成（既存規則 `heads/Rails_vX.Y.Z` 準拠）
+- [x] 0-2: 既存の未コミット変更（Gemfile sisimai 更新、mise.toml、.claude/）を先行コミットする
 
 ### Phase 1: Security patch（Rails 7.2.3.1 + 推移的依存）
 
-- [ ] 1-1: `Gemfile` の `gem 'rails'` 制約を `'~> 7.2', '>= 7.2.3.1'` に変更
-- [ ] 1-2: `mise exec -- bundle update rails rack rack-session nokogiri faraday net-imap thor uri` を実行
-- [ ] 1-3: `mise exec -- bundle-audit check --update` で脆弱性が 0 件になったことを確認（残存時は該当 gem を `bundle update` に追加）
-- [ ] 1-4: `mise exec -- bundle exec rails test` で回帰確認
-- [ ] 1-5: `mise exec -- bundle exec rails server` 起動、主要画面表示確認
-- [ ] 1-6: `git add Gemfile Gemfile.lock` → コミット（`chore: apply Rails 7.2.3.1 security patch and update vulnerable transitive deps`）
+- [x] 1-1: `Gemfile` の `gem 'rails'` 制約を `'~> 7.2', '>= 7.2.3.1'` に変更
+- [x] 1-2: `mise exec -- bundle update rails rack rack-session nokogiri faraday net-imap thor uri` を実行
+- [x] 1-3: `mise exec -- bundle-audit check --update` で脆弱性が 0 件になったことを確認（残存時は該当 gem を `bundle update` に追加）
+- [~] 1-4: `mise exec -- bundle exec rails test` で回帰確認 → MySQL 未起動のため実行不可。Rails 7.2.3.1 ブート確認（`rails runner`）で代替
+- [~] 1-5: `mise exec -- bundle exec rails server` 起動、主要画面表示確認 → MySQL 未起動のため DB 接続画面は確認不可（Docker 環境での最終確認は Phase 9 に残す）
+- [x] 1-6: `git add Gemfile Gemfile.lock` → コミット（`chore: apply Rails 7.2.3.1 security patch and update vulnerable transitive deps`）
 
 ### Phase 2: mise.toml に Node.js 追加
 
-- [ ] 2-1: `mise use node@22` を実行（LTS 最新を自動選択）
-- [ ] 2-2: `cat mise.toml` で `ruby` と `node` の両方が登録されていることを確認
-- [ ] 2-3: `mise exec -- node --version` で Node 22 系が返ることを確認
-- [ ] 2-4: `git add mise.toml` → コミット（`chore: pin Node.js 22 via mise for execjs runtime consistency`）
+- [x] 2-1: `mise use node@22` を実行（LTS 最新を自動選択）
+- [x] 2-2: `cat mise.toml` で `ruby` と `node` の両方が登録されていることを確認
+- [x] 2-3: `mise exec -- node --version` で Node 22 系が返ることを確認（22.22.2）
+- [x] 2-4: `git add mise.toml` → コミット（`chore: pin Node.js 22 via mise for execjs runtime consistency`）
 
 ### Phase 3: turbolinks 除去
 
-- [ ] 3-1: `Gemfile` から `gem 'turbolinks', '~> 5.2', '>= 5.2.1'` の行を削除
-- [ ] 3-2: `mise exec -- bundle install` で Gemfile.lock 更新
-- [ ] 3-3: `app/views/layouts/application.html.erb:7-8` の `'data-turbolinks-track' => 'reload'` オプションを削除
-- [ ] 3-4: `mise exec -- bundle exec rails test` で回帰確認
-- [ ] 3-5: `mise exec -- bundle exec rails server` でページ遷移の動作確認
-- [ ] 3-6: コミット（`chore: remove deprecated turbolinks gem (no JS event handlers in use)`）
+- [x] 3-1: `Gemfile` から `gem 'turbolinks', '~> 5.2', '>= 5.2.1'` の行を削除
+- [x] 3-2: `mise exec -- bundle install` で Gemfile.lock 更新
+- [x] 3-3: `app/views/layouts/application.html.erb:7-8` の `'data-turbolinks-track' => 'reload'` オプションを削除
+- [~] 3-4: `mise exec -- bundle exec rails test` で回帰確認 → MySQL 未起動のため `rails runner` で代替
+- [~] 3-5: `mise exec -- bundle exec rails server` でページ遷移の動作確認 → Docker 環境で Phase 9 時に確認
+- [x] 3-6: コミット（`chore: remove deprecated turbolinks gem (no JS event handlers in use)`）
 
 ### Phase 4: CoffeeScript → 素の JS 化
 
-- [ ] 4-1: `app/assets/javascripts/stats.js` を新規作成（datetimepicker 初期化コードを素の JS で記述）
-- [ ] 4-2: `app/assets/javascripts/stats.coffee` を削除
-- [ ] 4-3: 空の `.coffee` ファイル 5 件（admin, bounce_mails, sender, sessions, whitelist_mails）を削除
-- [ ] 4-4: `Gemfile` から `gem 'coffee-rails', '~> 5.0'` を削除
-- [ ] 4-5: `mise exec -- bundle install` で Gemfile.lock 更新
-- [ ] 4-6: `mise exec -- bundle exec rails assets:precompile` で JS コンパイル成功確認
-- [ ] 4-7: `mise exec -- bundle exec rails server` 起動、`/` 画面で datetimepicker 動作確認
-- [ ] 4-8: コミット（`chore: replace CoffeeScript with vanilla JS and remove coffee-rails`）
+- [x] 4-1: `app/assets/javascripts/stats.js` を新規作成（datetimepicker 初期化コードを素の JS で記述）
+- [x] 4-2: `app/assets/javascripts/stats.coffee` を削除
+- [x] 4-3: 空の `.coffee` ファイル 5 件（admin, bounce_mails, sender, sessions, whitelist_mails）を削除
+- [x] 4-4: `Gemfile` から `gem 'coffee-rails', '~> 5.0'` を削除
+- [x] 4-5: `mise exec -- bundle install` で Gemfile.lock 更新
+- [x] 4-6: `mise exec -- bundle exec rails assets:precompile` で JS コンパイル成功確認
+- [~] 4-7: `mise exec -- bundle exec rails server` 起動、`/` 画面で datetimepicker 動作確認 → Docker 環境で Phase 9 時に確認
+- [x] 4-8: コミット（`chore: replace CoffeeScript with vanilla JS and remove coffee-rails`）
 
 ### Phase 5: uglifier → terser 置換
 
-- [ ] 5-1: `Gemfile` の `gem 'uglifier', '~> 4.2'` を `gem 'terser', '~> 1.2'` に置換
-- [ ] 5-2: `config/environments/production.rb:22` の `:uglifier` を `:terser` に変更
-- [ ] 5-3: `mise exec -- bundle install` で Gemfile.lock 更新
-- [ ] 5-4: `RAILS_ENV=production mise exec -- bundle exec rails assets:precompile` で minify 成功確認
-- [ ] 5-5: `public/assets/` 配下の生成された JS の中身を spot check（minify されているか）
-- [ ] 5-6: コミット（`chore: replace uglifier with terser for ES6+ support`）
+- [x] 5-1: `Gemfile` の `gem 'uglifier', '~> 4.2'` を `gem 'terser', '~> 1.2'` に置換
+- [x] 5-2: `config/environments/production.rb:22` の `:uglifier` を `:terser` に変更
+- [x] 5-3: `mise exec -- bundle install` で Gemfile.lock 更新
+- [x] 5-4: `RAILS_ENV=production mise exec -- bundle exec rails assets:precompile` で minify 成功確認
+- [x] 5-5: `public/assets/` 配下の生成された JS の中身を spot check（minify されているか）→ 451KB の application.js が 1 行 minify 確認
+- [x] 5-6: コミット（`chore: replace uglifier with terser for ES6+ support`）
 
 ### Phase 6: Sass 系 gem 置換
 
-- [ ] 6-1: `Gemfile` から `gem 'sass-rails', '~> 6.0'` と `gem 'sassc-rails'` を削除
-- [ ] 6-2: `Gemfile` に `gem 'dartsass-sprockets', '~> 3.0'` を追加
-- [ ] 6-3: `mise exec -- bundle install` で Gemfile.lock 更新
-- [ ] 6-4: `mise exec -- bundle exec rails tmp:clear && mise exec -- bundle exec rails assets:clobber` で既存 cache 削除
-- [ ] 6-5: `mise exec -- bundle exec rails assets:precompile` で SCSS コンパイル成功確認
-- [ ] 6-6: `@extend .col-sm-6` 等の Bootstrap 拡張が解決されているか出力 CSS を確認
-- [ ] 6-7: `@import 'bootstrap-datetimepicker'` が正しく展開されているか確認
-- [ ] 6-8: `mise exec -- bundle exec rails server` 起動、主要画面（`/`, `/bounce_mails`, `/whitelist_mails`, `/admin`）で CSS 崩れが無いか目視確認
-- [ ] 6-9: 問題があれば `bootstrap-sass` の互換性を再調査（Dart Sass で `@extend` に制約がある場合、`@include` への書き換えを検討）
-- [ ] 6-10: コミット（`chore: replace sass-rails/sassc-rails with dartsass-sprockets`）
+- [x] 6-1: `Gemfile` から `gem 'sass-rails', '~> 6.0'` と `gem 'sassc-rails'` を削除
+- [x] 6-2: `Gemfile` に `gem 'dartsass-sprockets', '~> 3.0'` を追加
+- [x] 6-3: `mise exec -- bundle install` で Gemfile.lock 更新
+- [x] 6-4: `mise exec -- bundle exec rails tmp:clear && mise exec -- bundle exec rails assets:clobber` で既存 cache 削除
+- [x] 6-5: `mise exec -- bundle exec rails assets:precompile` で SCSS コンパイル成功確認
+- [x] 6-6: `@extend .col-sm-6` 等の Bootstrap 拡張が解決されているか出力 CSS を確認（compiled application.css 175KB、Bootstrap クラス 11 件ヒット）
+- [x] 6-7: `@import 'bootstrap-datetimepicker'` が正しく展開されているか確認（datetimepicker 関連 70 件ヒット）
+- [~] 6-8: `mise exec -- bundle exec rails server` 起動、主要画面（`/`, `/bounce_mails`, `/whitelist_mails`, `/admin`）で CSS 崩れが無いか目視確認 → Docker 環境で Phase 9 時に確認
+- [x] 6-9: 問題があれば `bootstrap-sass` の互換性を再調査 → `@extend` は正常動作、書き換え不要
+- [x] 6-10: コミット（`chore: replace sass-rails/sassc-rails with dartsass-sprockets`）
 
 ### Phase 7: 不要 gem 削除
 
-- [ ] 7-1: `Gemfile` から `gem 'hub', :require=>nil` を削除
-- [ ] 7-2: `Gemfile` から `gem 'rails_layout', '~> 1.0', '>= 1.0.42'` を削除
-- [ ] 7-3: `mise exec -- bundle install` で Gemfile.lock 更新
-- [ ] 7-4: `mise exec -- bundle exec rails test` で回帰確認
-- [ ] 7-5: コミット（`chore: remove unmaintained hub and rails_layout gems`）
+- [x] 7-1: `Gemfile` から `gem 'hub', :require=>nil` を削除
+- [x] 7-2: `Gemfile` から `gem 'rails_layout', '~> 1.0', '>= 1.0.42'` を削除
+- [x] 7-3: `mise exec -- bundle install` で Gemfile.lock 更新
+- [~] 7-4: `mise exec -- bundle exec rails test` で回帰確認 → MySQL 未起動のため `rails runner` で代替（Boot OK 確認）
+- [x] 7-5: コミット（`chore: remove unmaintained hub and rails_layout gems`）
 
 ### Phase 8: CI に bundler-audit 組み込み（オプション）
 
-- [ ] 8-1: `.github/workflows/` ディレクトリの有無を確認（無ければ作成）
-- [ ] 8-2: `.github/workflows/bundler-audit.yml` を作成（plan の YAML をコピー）
-- [ ] 8-3: ローカルで YAML 構文を `yq` 等で検証
-- [ ] 8-4: コミット（`ci: add bundler-audit workflow for continuous vulnerability scanning`）
+- [x] 8-1: `.github/workflows/` ディレクトリの有無を確認（無ければ作成）→ 新規作成
+- [x] 8-2: `.github/workflows/bundler-audit.yml` を作成（plan の YAML をコピー）
+- [x] 8-3: ローカルで YAML 構文を Ruby の YAML.load_file で検証（YAML OK）
+- [x] 8-4: コミット（`ci: add bundler-audit workflow for continuous vulnerability scanning`）
 
 ### Phase 9: 最終確認と PR 作成
 
-- [ ] 9-1: `mise exec -- bundle-audit check --update` が 0 件であることを最終確認
-- [ ] 9-2: `mise exec -- bundle exec rails test` 全件 PASS 確認
-- [ ] 9-3: `mise exec -- bundle exec rails server` 起動、全主要画面（`/`, `/bounce_mails`, `/whitelist_mails`, `/admin`, `/status`）で動作確認
-- [ ] 9-4: datetimepicker、C3.js チャート、ページネーションの動作目視確認
-- [ ] 9-5: `git log --oneline master..HEAD` でコミット分割を確認
-- [ ] 9-6: `git push -u origin heads/Rails_v7.2.3.1`
-- [ ] 9-7: Issue を作成し、対応する PR を作成、Issue にリンク付け
+- [x] 9-1: `mise exec -- bundle-audit check --update` が 0 件であることを最終確認（No vulnerabilities found）
+- [~] 9-2: `mise exec -- bundle exec rails test` 全件 PASS 確認 → MySQL 未起動のため `rails runner` で代替（Rails 7.2.3.1 boot OK）
+- [~] 9-3: `mise exec -- bundle exec rails server` 起動、全主要画面で動作確認 → Docker 環境での確認は PR マージ前に別途実施
+- [~] 9-4: datetimepicker、C3.js チャート、ページネーションの動作目視確認 → Docker 環境での確認は PR マージ前に別途実施
+- [x] 9-5: `git log --oneline master..HEAD` でコミット分割を確認（10 コミット）
+- [x] 9-6: `git push -u origin heads/Rails_v7.2.3.1`
+- [x] 9-7: Issue #10 を作成し、対応する PR #9 を作成、`Closes #10` で紐付け済み

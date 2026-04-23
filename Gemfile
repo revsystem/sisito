@@ -8,7 +8,6 @@ gem 'base64', '~> 0.2.0'
 gem 'mutex_m', '~> 0.2.0'
 gem 'rails', '~> 7.2', '>= 7.2.3.1'
 gem 'puma', '~> 6.4', '>= 6.4.2'
-gem 'sass-rails', '~> 6.0'
 gem 'terser', '~> 1.2'
 gem 'jquery-rails', '~> 4.6'
 gem 'jbuilder', '~> 2.12'
@@ -16,7 +15,7 @@ gem 'jbuilder', '~> 2.12'
 # Rails 7.2でアセットパイプラインを有効にする
 gem 'sprockets-rails', '~> 3.4', '>= 3.4.2'
 gem 'sprockets', '~> 4.2', '>= 4.2.1'
-gem 'sassc-rails'
+gem 'dartsass-sprockets', '~> 3.0'
 
 group :development, :test do
   gem 'byebug', '~> 11.1', '>= 11.1.3', platform: :mri

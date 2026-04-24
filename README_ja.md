@@ -41,8 +41,10 @@ docker-compose up
 
 ## 推奨システム要件
 
-* Ruby 3.1.2/3.3.2
+* Ruby 3.4+（`mise.toml` で 3.4.9 を固定）
 * MySQL 8.0.36 以上
+
+Ruby と Node.js のバージョンは [mise](https://mise.jdx.dev/) で管理しています。`mise install` でツールチェーンをセットアップします（`mise.toml` を参照）。
 
 ## バウンスメール収集スクリプト例
 

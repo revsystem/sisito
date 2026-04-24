@@ -41,8 +41,10 @@ docker-compose up
 
 ## Recommended System Requirements
 
-* Ruby 3.1.2/3.3.2
+* Ruby 3.4+ (version 3.4.9 pinned via `mise.toml`)
 * MySQL 8.0.36 or later
+
+Ruby and Node.js versions are managed via [mise](https://mise.jdx.dev/). Run `mise install` to provision the toolchain (reads `mise.toml`).
 
 ## Bounced Mail Collect Script Example
 

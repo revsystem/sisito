@@ -6,21 +6,28 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Sisito is a Ruby on Rails 7.2 web application that provides a frontend dashboard for analyzing email bounce data collected by the Sisimai library. It helps monitor email delivery issues, track blacklisted recipients, and manage email bounce analytics.
 
+**Note:** Despite residing under a Go workspace path (`go/src/github.com/...`), this is a pure Ruby on Rails project with no Go source code. The companion `sisito-api` (Go binary) is built from a separate repository and pulled as a pre-built binary in Docker.
+
 ## Technology Stack
 
-- **Framework**: Ruby on Rails 7.2.2 with explicit Sprockets configuration
-- **Ruby Version**: 3.1.2+ required
-- **Database**: MySQL 8.0.36+ with utf8mb3 charset, optimized for large datasets
-- **Asset Pipeline**: Sprockets with Sass, CoffeeScript, and Bootstrap 3.4
-- **Authentication**: Optional Google OAuth2 via OmniAuth
+- **Framework**: Ruby on Rails ~> 7.2 (currently 7.2.3.1) with explicit Sprockets configuration
+- **Ruby Version**: 3.4.9 (managed via `mise.toml`; Node 22 also pinned for ExecJS)
+- **App Server**: Puma
+- **Database**: MySQL 8.0+ with utf8mb3 charset
+- **Asset Pipeline**: Sprockets 4 with dartsass-sprockets, Terser (JS), and Bootstrap 3.4
+- **Authentication**: HTTP Digest for admin access; optional Google OAuth2 via OmniAuth
 - **Charts**: C3.js for data visualization
-- **Pagination**: Kaminari gem with performance-optimized configuration
-- **Caching**: Multi-tier Rails caching for statistical data
+- **Pagination**: Kaminari (20 per page, max 1000 pages)
+- **Health Check**: `Rack::Health` middleware (mounted in `config.ru`)
+- **Bounce Parsing**: Sisimai gem ~> 5.6
 
 ## Common Commands
 
 ### Development Setup
 ```bash
+# Install Ruby/Node via mise (see mise.toml)
+mise install
+
 # Install dependencies
 bundle install
 
@@ -40,10 +47,11 @@ bundle exec rails server -p 1080 -b 0.0.0.0
 docker-compose build
 docker-compose up
 
-# Access points:
-# - Console: http://localhost:3000
+# Services:
+# - Sisito (Rails): http://localhost:3000
 # - Mailcatcher: http://localhost:11080
-# - API: curl localhost:8080/blacklist
+# - sisito-api (Go): curl localhost:8080/blacklist
+# - MySQL, Postfix (bounce collection)
 ```
 
 ### Testing
@@ -71,141 +79,101 @@ bundle exec rails generate migration MigrationName
 
 # Check migration status
 bundle exec rails db:migrate:status
-
-# Performance-critical migrations (applied)
-# - 20250705000001_add_performance_indexes_to_bounce_mails.rb
-# - 20250705000002_add_addresseralias_optimization_indexes.rb
 ```
 
 ## Core Architecture
 
 ### Data Models
-- **BounceMail**: Primary model storing email bounce data with 20+ indexed fields including timestamp, recipient, sender, bounce reason, SMTP diagnostics
-- **WhitelistMail**: Manages recipient/sender domain pairs to exclude from blacklists
-- **ConfirmationMail**: Handles email confirmation processes
+- **BounceMail** (`ApplicationRecord`): Primary model for email bounce data with timestamp, recipient, sender, bounce reason, SMTP diagnostics, etc.
+- **WhitelistMail** (`ApplicationRecord`): Recipient/sender domain pairs excluded from blacklists. Has `has_many :bounce_mails` via `recipient` foreign key.
+- **ConfirmationMail** (`ActiveModel::Model`, no DB table): Form object for sending confirmation emails via SMTP.
 
-### Key Controllers
-- **StatsController** (root `/`): Dashboard with analytics, charts, and date filtering
-- **BounceMailsController** (`/bounce_mails`): Browse, search, and paginate bounce records
-- **WhitelistMailsController** (`/whitelist_mails`): Manage whitelisted recipients
-- **AdminController** (`/admin`): Administrative functions with download capabilities
-- **StatusController** (`/status`): JSON API endpoint for monitoring
+### Controllers
+- **StatsController** (root `/`): Dashboard with cached analytics, charts, and date/addresser filtering
+- **BounceMailsController** (`/bounce_mails`): Browse, search (by email/digest), paginate bounce records with LEFT JOIN to whitelist
+- **WhitelistMailsController** (`/whitelist_mails`): Register/deregister whitelisted recipients
+- **AdminController** (`/admin`): Administrative functions with search and download capabilities
+- **StatusController** (`/status`): JSON monitoring endpoint with bounce count statistics
+- **SenderController** (`/sender`): Compose and send confirmation emails via configured SMTP
+- **SessionsController** (`/auth/:provider/callback`): Google OAuth2 callback handling
 
-### Database Schema
-- **bounce_mails**: Comprehensive bounce tracking with 11 specialized composite indexes for large dataset performance
-- **whitelist_mails**: Simple recipient/sender domain exclusion pairs
-- **Performance Indexes**: Strategic composite indexes covering timestamp-based queries, complex JOINs, and statistical aggregations
-- **Conditional Indexing**: MySQL partial indexes with WHERE clauses for specific query patterns
+### Database Schema (bounce_mails, whitelist_mails)
+- Current `db/schema.rb` is at version `2022_10_15_175608` (ActiveRecord::Schema[7.1])
+- Two additional performance index migrations exist in `db/migrate/` (20250705*) but are **not yet reflected** in `schema.rb` — run `db:migrate` to apply
 
 ## Configuration
 
 ### Main Configuration
-- **config/sisito.yml**: Primary application configuration including admin credentials, SMTP settings, UI customization
-- **config/database.yml**: MySQL connection settings for development/test/production
-- **config/application.rb**: Rails application configuration, timezone settings
+- **config/sisito.yml**: Admin credentials, SMTP settings per sender domain, UI header links, bounce filtering, digest algorithm, optional OAuth/status settings
+- **config/database.yml**: MySQL connection settings with TRADITIONAL sql_mode
+- **config/initializers/sisito.rb**: Loads sisito.yml, resolves secret_file, validates whitelist callback scripts, **`eval`s `blacklisted_label_filter`** from YAML
+- **config/initializers/sisimai.rb**: Loads Sisimai reason keys for validation
+- **config/initializers/kaminari_config.rb**: Pagination tuning (20/page, max 1000 pages)
+- **config/initializers/sisito_performance.rb**: Query timeout (30s), fast stats flag, large data threshold (100K)
 
-### Key Configuration Options
-- Admin authentication credentials
-- SMTP server settings per sender domain
-- UI header links and customization
-- Blacklist filtering logic
-- Google OAuth2 integration
-- Monitoring interval settings
-- Performance optimization flags (`shorten_stats`)
+### Key Configuration Options (sisito.yml)
+- `admin.username` / `admin.password` (or `admin.secret_file` for external YAML)
+- `smtp`: Per-sender SMTP server settings
+- `header_links`: Custom navigation links
+- `blacklisted_label_filter`: Ruby proc (evaluated via `eval`) for filtering blacklist display
+- `shorten_stats`: When true, skips heavy aggregate queries on dashboard
+- `whitelist_callback.whitelisted` / `.unwhitelisted`: External script paths
+- `omniauth.google_client_id` / `google_client_secret` / `hd` / `allow_users`
+- `status.interval`: Monitoring interval in seconds (default 60)
 
-### Performance Configuration Files
-- **config/initializers/sisito_performance.rb**: Performance-specific settings and thresholds
-- **config/initializers/kaminari_config.rb**: Pagination optimization for large datasets
-- **config/database.yml**: Optimized MySQL connection settings (no deprecated `reconnect` option)
+## Caching Strategy
 
-## Key Features
-
-1. **Analytics Dashboard**: Date-range filtering, bounce statistics by reason/destination
-2. **Advanced Search**: Full-text search across bounce records with multiple filters
-3. **Whitelist Management**: Add/remove recipients from blacklists with domain-based rules
-4. **Monitoring API**: `/status` endpoint returns JSON with bounce statistics
-5. **Authentication**: Optional Google OAuth2 with domain restrictions
-6. **Email Integration**: Built-in SMTP functionality for sending emails
+Caching is active in production only (via `cache_if_production` helper in `ApplicationController`):
+- **15-minute expiry**: Date-range statistics (`count_by_date`, `count_by_destination`, `count_by_reason`, `count_by_date_reason`)
+- **2-hour expiry**: Heavy aggregate queries (`uniq_count_by_destination`, `uniq_count_by_reason`, `uniq_count_by_sender`, `bounced_by_type`)
+- **Status cache**: Cached for `interval - 5` seconds
+- Cache keys include filter parameters (date range, addresser) for granular invalidation
+- `shorten_stats: true` skips the 2-hour aggregate queries entirely (emergency bypass)
 
 ## Data Integration
 
 ### Bounce Data Collection
-The application expects bounce data to be populated via external scripts using the Sisimai library. See README.md for complete Ruby script example that processes mailbox files and inserts bounce records.
+Bounce data is populated via external scripts using the Sisimai library. The Docker setup includes a Postfix container that collects bounces and writes them to MySQL. See README.md for the Ruby script example.
 
 ### Blacklist Query Pattern
 ```sql
-SELECT recipient FROM bounce_mails bm 
+SELECT recipient FROM bounce_mails bm
 LEFT JOIN whitelist_mails wm ON bm.recipient = wm.recipient AND bm.senderdomain = wm.senderdomain
 WHERE bm.senderdomain = 'example.com' AND wm.id IS NULL
 ```
 
-## Performance Optimization Patterns
-
-### Large Dataset Handling
-- **Query Splitting**: Heavy statistical queries split into separate operations to avoid expensive CASE statements
-- **Progressive Caching**: Multi-tier caching with 30-minute cache for recent data, 4-6 hour cache for statistical aggregations
-- **Result Limiting**: Complex queries limited to top 1000 results to prevent memory issues
-- **Pagination Optimization**: Kaminari configured with 20 items per page and max 1000 pages for stability
-
-### Rails 7.2 Specific Patterns
-- **Arel.sql Usage**: All raw SQL wrapped in `Arel.sql()` for Rails 7.2 security compliance
-- **Explicit Sprockets**: Asset pipeline requires explicit Sprockets configuration in Rails 7.2
-- **Migration Versioning**: All performance migrations use `ActiveRecord::Migration[7.2]`
-
-### Query Optimization Strategies
-- **Composite Indexing**: Strategic indexes like `(timestamp, addresser)`, `(recipient, senderdomain, timestamp)`
-- **Conditional WHERE Clauses**: `WHERE addresseralias IS NOT NULL AND addresseralias != ''` instead of Rails `.where.not()`
-- **SELECT Optimization**: Use `.select()` to limit column fetching in large result sets
-- **DISTINCT Handling**: Split complex DISTINCT operations into simpler indexed queries
-
-### Cache Architecture
-- **Hierarchical Caching**: Different expiration times based on data volatility
-- **Emergency Bypass**: `shorten_stats: true` configuration disables heavy queries during performance issues
-- **Granular Keys**: Cache keys include date ranges and filters for precise invalidation
-- **Production-Only**: Caching disabled in development for simplicity
-
 ## Development Patterns
 
+### Code Style
+- Standard Rails conventions; **no RuboCop** configured
+- All raw SQL wrapped in `Arel.sql()` for Rails 7.2 compliance
+- Config access via `Rails.application.config.sisito` with `.fetch` / `.dig`
+- HTTP Digest authentication (not Basic) for admin-protected views
+- Known typo: `set_pervious_url` (should be `previous`) — used consistently for session key
+
 ### Asset Pipeline
-- Uses Sprockets with Sass and CoffeeScript
-- Bootstrap 3.4 for UI components
-- C3.js for chart rendering
-- jQuery for DOM manipulation
+- Sprockets 4 with dartsass-sprockets (replaced sass-rails/sassc-rails)
+- Terser for JS minification (replaced uglifier for ES6+ support)
+- Bootstrap 3.4 via `bootstrap-sass` gem
+- jQuery, C3.js, Moment.js, clipboard.js
+- CoffeeScript has been removed; vanilla JS used
 
-### Testing Structure
-- Minimal test coverage using Rails default testing framework
-- Tests located in `test/` directory with controllers, models, helpers
-- Use `bundle exec rails test` for running tests
+### Testing
+- **Framework**: Rails default Minitest
+- **Coverage**: Minimal — only `test/controllers/status_controller_test.rb` exists
+- **Known issue**: Test file defines `MonitorControllerTest` using `monitor_index_url`, but no `monitor` route exists in `config/routes.rb`. The test is stale and will fail.
+- Fixtures directory exists but contains no fixture files
 
-### Database Queries
-- Extensive use of ActiveRecord with optimized queries for large datasets
-- Custom SQL for complex bounce analytics with `Arel.sql()` wrapping
-- Proper indexing on frequently queried fields with composite strategies
+### CI/CD
+- **GitHub Actions**: `bundler-audit` workflow only (push to `master`, PRs, weekly cron)
+- **No test CI workflow** — tests are not run automatically
+- **Default branch**: `master`
 
-## Deployment Considerations
+## Important Gotchas
 
-### Database Requirements
-- MySQL 8.0.36+ with utf8mb3 charset required
-- Performance optimized for datasets with 100K+ records
-- Regular `OPTIMIZE TABLE bounce_mails` and `ANALYZE TABLE bounce_mails` maintenance recommended
-
-### Performance Monitoring
-- Monitor `/status` endpoint for application health
-- Use `SHOW FULL PROCESSLIST` to identify slow queries
-- Watch for "Creating sort index" status indicating heavy queries
-- Emergency `shorten_stats: true` configuration available for performance crises
-
-### Cache Configuration
-- Production caching essential for large datasets (multi-tier strategy implemented)
-- Configure proper cache store (Redis recommended for production)
-- Monitor cache hit ratios for statistical queries
-
-### Infrastructure Considerations
-- Read replicas recommended for heavy analytical workloads
-- Consider data archiving strategy for datasets exceeding 1M records
-- Configure timezone settings in config/application.rb for local time display
-
-### Key Performance Metrics
-- Statistical dashboard: Target <8 seconds load time
-- Search results: Target <5 seconds response time
-- Pagination: Target <2 seconds per page
+1. **`eval` in initializer**: `config/initializers/sisito.rb` uses `eval()` on the `blacklisted_label_filter` YAML value — never accept untrusted YAML
+2. **Schema version lag**: `db/schema.rb` version (2022_10_15) does not include 20250705 performance index migrations — verify migration status with `bundle exec rails db:migrate:status`
+3. **Stale test**: The only controller test references a non-existent route — needs to be fixed before adding test CI
+4. **Session typo**: `session[:pervious_url]` is used throughout — changing it would require updating all references
+5. **No Makefile**: Use `bundle exec rails` and `docker-compose` commands directly
+6. **Current branch**: `heads/Rails_v7.2.3.1` — `master` is the default/production branch

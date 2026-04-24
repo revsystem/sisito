@@ -45,3 +45,5 @@ gem 'omniauth-google-oauth2', '~> 1.1', '>= 1.1.2'
 gem 'momentjs-rails', '~> 2.29', '>= 2.29.4.1'
 gem 'bootstrap3-datetimepicker-rails', '~> 4.17', '>= 4.17.47'
 gem 'execjs', '~> 2.10'
+
+gem 'csv', '~> 3.3'

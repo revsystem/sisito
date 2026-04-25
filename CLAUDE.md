@@ -142,6 +142,40 @@ LEFT JOIN whitelist_mails wm ON bm.recipient = wm.recipient AND bm.senderdomain 
 WHERE bm.senderdomain = 'example.com' AND wm.id IS NULL
 ```
 
+## Utility Scripts
+
+These scripts live at the repository root (not under `bin/`) and are invoked manually rather than through Rails tasks. README.md documents the operational usage; the notes here cover what each one does and how it relates to the rest of the codebase.
+
+### `update-sisto-db.rb`
+Sisimai-based bounce ingestion script. Reads bounce emails from a Maildir-style directory (passed as the first argv), parses them with `Sisimai.rise`, and inserts each result into `bounce_mails`. Connects directly to MySQL (`bounce` / `bounce` / `sisito_development`) without going through ActiveRecord, so timestamps are stored via `FROM_UNIXTIME(...)` and the `digest` column is populated with `SHA1(recipient)`. The Postfix container's `/collect.rb` is a similar in-container variant.
+
+```bash
+ruby update-sisto-db.rb /var/spool/sisito/mail
+```
+
+### `monitor_performance.rb`
+Standalone MySQL performance monitor. Reports running queries (>5s), table size and index ratio for `bounce_mails`, presence of the three performance indexes (`idx_timestamp_addresser`, `idx_reason_destination`, `idx_recipient_senderdomain_timestamp`), and key InnoDB memory variables (`innodb_buffer_pool_size`, `tmp_table_size`, `sort_buffer_size`). Runs against `sisito_development` by default — edit the connection block when targeting other environments.
+
+```bash
+ruby monitor_performance.rb
+```
+
+### `mysql_optimization.cnf`
+Production MySQL/MariaDB tuning preset. Copy to `/etc/mysql/mysql.conf.d/sisito_optimization.cnf` (MySQL) or `/etc/mysql/mariadb.conf.d/sisito_optimization.cnf` (MariaDB) and restart the server. Tuned for bounce aggregation workloads: 2 GB `innodb_buffer_pool_size`, 1 GB `tmp_table_size`, 512 MB query cache, slow query log enabled at 5 s. Adjust `innodb_buffer_pool_size` to ~70–80% of available RAM before applying.
+
+## Docker Composition
+
+`docker-compose.yml` orchestrates four services. Three of them have their own Dockerfile at the repository root; MySQL uses an upstream image directly.
+
+| Service      | Dockerfile              | Base image              | Role |
+|--------------|-------------------------|-------------------------|------|
+| `sisito`     | `Dockerfile.sisito`     | `ubuntu:jammy-20221003` | Rails app (Puma). Runs `bundle install --deployment`, then `migrate.sh` → `init.sh` via `entrykit` + `dumb-init`. Timezone forced to Asia/Tokyo. SMTP port rewritten 25 → 1025 to point at Mailcatcher. |
+| `sisito_api` | `Dockerfile.sisito-api` | `alpine`                | Go binary `sisito-api`, downloaded pre-built from `winebarrel/sisito-api` GitHub Releases (version pinned via the `SISITO_API_VERSION` ARG). Serves `/blacklist` and related JSON endpoints on :8080. |
+| `postfix`    | `Dockerfile.postfix`    | `ubuntu:jammy-20221003` | Bounce-receiving Postfix + `sisimai` + `mysql2`. The container-internal `/collect.rb` parses incoming bounces and inserts them into the shared MySQL. |
+| `mysql`      | (image: `mysql:8.0.32`) | —                       | Shared database. `MYSQL_ALLOW_EMPTY_PASSWORD=1`, TZ=Asia/Tokyo. |
+
+Mailcatcher's web UI is exposed on host port `11080` from the `sisito` container (port `1080` inside).
+
 ## Development Patterns
 
 ### Code Style

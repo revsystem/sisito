@@ -30,8 +30,14 @@ mise install
 
 # Persist deployment / without via bundle config so we don't rely on
 # per-invocation flags (deprecated in future Bundler versions).
+#
+# Note: only `:test` is excluded. The `:development` group must be
+# installed because the Pi runs as RAILS_ENV=development (see CLAUDE.md
+# Gotcha #7), and config/environments/development.rb requires `listen`
+# via `ActiveSupport::EventedFileUpdateChecker`. Excluding :development
+# breaks `assets:precompile` and the server boot.
 mise exec -- bundle config set --local deployment 'true'
-mise exec -- bundle config set --local without 'development test'
+mise exec -- bundle config set --local without 'test'
 mise exec -- bundle install
 
 # SECRET_KEY_BASE_DUMMY allows boot under RAILS_ENV=production without an

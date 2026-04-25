@@ -39,6 +39,16 @@ docker-compose up
 # api: `curl localhost:8080/blacklist` (see https://github.com/revsystem/sisito-api#api)
 ```
 
+### Updating an existing deployment
+
+For hosts that run Sisito directly (without Docker), use the bundled `bin/deploy.sh` helper to pull the latest `master`, install gems, precompile assets, and gracefully restart Puma:
+
+```console
+./bin/deploy.sh
+```
+
+The script aborts on uncommitted local changes or non-fast-forward divergence, and warns when there are pending database migrations (which should be applied manually during a maintenance window). It defaults to `RAILS_ENV=development` to match the typical single-host operation; override with `RAILS_ENV=production ./bin/deploy.sh` if your production environment is properly configured. See the comments at the top of `bin/deploy.sh` for details.
+
 ## Recommended System Requirements
 
 * Ruby 3.4+ (version 3.4.9 pinned via `mise.toml`)

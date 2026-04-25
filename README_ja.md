@@ -39,6 +39,16 @@ docker-compose up
 # API: `curl localhost:8080/blacklist` (詳細は https://github.com/revsystem/sisito-api#api 参照)
 ```
 
+### 既存ホストの更新
+
+Docker を使わずに Sisito を直接稼働させているホストでは、付属の `bin/deploy.sh` を使うと、`master` の取得・gem の install・アセットのプリコンパイル・Puma の graceful restart を一括で実行できます。
+
+```console
+./bin/deploy.sh
+```
+
+スクリプトはローカルに未コミットの差分や fast-forward できない分岐がある場合は中断します。未適用のマイグレーションがある場合も警告だけ表示し、自動では適用しません（メンテナンスウィンドウで手動適用してください）。`RAILS_ENV` の既定値は単一ホスト運用に合わせて `development` です。本物の production 環境がきちんと構成されている場合は `RAILS_ENV=production ./bin/deploy.sh` のように上書きしてください。詳細は `bin/deploy.sh` 冒頭のコメントを参照してください。
+
 ## 推奨システム要件
 
 * Ruby 3.4+（`mise.toml` で 3.4.9 を固定）

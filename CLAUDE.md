@@ -98,8 +98,11 @@ bundle exec rails db:migrate:status
 - **SessionsController** (`/auth/:provider/callback`): Google OAuth2 callback handling
 
 ### Database Schema (bounce_mails, whitelist_mails)
-- Current `db/schema.rb` is at version `2022_10_15_175608` (ActiveRecord::Schema[7.1])
-- Two additional performance index migrations exist in `db/migrate/` (20250705*) but are **not yet reflected** in `schema.rb` — run `db:migrate` to apply
+- Current `db/schema.rb` is at version `2026_04_25_000001` (ActiveRecord::Schema[7.2])
+- Three performance index migrations are reflected in `schema.rb`:
+  - `20250705000001_add_performance_indexes_to_bounce_mails` — original revision that added 11 composite indexes (kept as-is for history; most of these are dropped by the cleanup migration below)
+  - `20250705000002_add_addresseralias_optimization_indexes` — original revision that added 3 partial indexes (`where: ...`); MySQL silently drops the predicate so these became plain BTREE indexes that duplicate two of the 20250705000001 indexes
+  - `20260425000001_cleanup_redundant_performance_indexes` — **idempotent** cleanup that drops the 10 redundant/unused indexes from the two migrations above and ensures the 4 indexes that the controllers actually use exist (`idx_timestamp_addresser`, `idx_reason_timestamp`, `idx_recipient_senderdomain_timestamp`, `idx_reason_destination`). Safe to run on hosts where the earlier migrations were applied (full set), partially cleaned up by hand (the Pi case), or never applied at all
 
 ## Configuration
 
@@ -154,7 +157,7 @@ ruby update-sisto-db.rb /var/spool/sisito/mail
 ```
 
 ### `monitor_performance.rb`
-Standalone MySQL performance monitor. Reports running queries (>5s), table size and index ratio for `bounce_mails`, presence of the three performance indexes (`idx_timestamp_addresser`, `idx_reason_destination`, `idx_recipient_senderdomain_timestamp`), and key InnoDB memory variables (`innodb_buffer_pool_size`, `tmp_table_size`, `sort_buffer_size`). Runs against `sisito_development` by default — edit the connection block when targeting other environments.
+Standalone MySQL performance monitor. Reports running queries (>5s), table size and index ratio for `bounce_mails`, presence of the four performance indexes left after the cleanup migration `20260425000001` (`idx_timestamp_addresser`, `idx_reason_timestamp`, `idx_recipient_senderdomain_timestamp`, `idx_reason_destination`), and key InnoDB memory variables (`innodb_buffer_pool_size`, `tmp_table_size`, `sort_buffer_size`). Runs against `sisito_development` by default — edit the connection block when targeting other environments.
 
 ```bash
 ruby monitor_performance.rb
@@ -206,7 +209,7 @@ Mailcatcher's web UI is exposed on host port `11080` from the `sisito` container
 ## Important Gotchas
 
 1. **`eval` in initializer**: `config/initializers/sisito.rb` uses `eval()` on the `blacklisted_label_filter` YAML value — never accept untrusted YAML
-2. **Schema version lag**: `db/schema.rb` version (2022_10_15) does not include 20250705 performance index migrations — verify migration status with `bundle exec rails db:migrate:status`
+2. **MySQL ignores partial indexes**: `add_index ..., where: ...` in Rails compiles to plain `CREATE INDEX` on MySQL (the `WHERE` predicate is silently dropped). Migration `20250705000002` was written under the assumption it would be honored; the resulting full indexes ended up duplicating two of the `20250705000001` indexes, which is why `20260425000001` cleans them up
 3. **Stale test**: The only controller test references a non-existent route — needs to be fixed before adding test CI
 4. **Session typo**: `session[:pervious_url]` is used throughout — changing it would require updating all references
 5. **No Makefile**: Use `bundle exec rails` and `docker-compose` commands directly

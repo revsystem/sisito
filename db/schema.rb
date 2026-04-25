@@ -10,8 +10,8 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2022_10_15_175608) do
-  create_table "bounce_mails", id: :integer, charset: "utf8mb3", force: :cascade do |t|
+ActiveRecord::Schema[7.2].define(version: 2026_04_25_000001) do
+  create_table "bounce_mails", id: :integer, charset: "utf8mb3", collation: "utf8mb3_general_ci", force: :cascade do |t|
     t.datetime "timestamp", precision: nil, null: false
     t.string "lhost", null: false
     t.string "rhost", null: false
@@ -41,13 +41,17 @@ ActiveRecord::Schema[7.1].define(version: 2022_10_15_175608) do
     t.index ["digest"], name: "idx_digest"
     t.index ["hardbounce", "recipient"], name: "idx_hardbounce_recipient"
     t.index ["messageid"], name: "idx_messageid"
+    t.index ["reason", "destination"], name: "idx_reason_destination"
     t.index ["reason", "recipient"], name: "idx_reason_recipient"
+    t.index ["reason", "timestamp"], name: "idx_reason_timestamp"
+    t.index ["recipient", "senderdomain", "timestamp"], name: "idx_recipient_senderdomain_timestamp"
     t.index ["recipient"], name: "idx_recipient"
     t.index ["senderdomain"], name: "idx_senderdomain"
+    t.index ["timestamp", "addresser"], name: "idx_timestamp_addresser"
     t.index ["timestamp"], name: "idx_timestamp"
   end
 
-  create_table "whitelist_mails", id: :integer, charset: "utf8mb3", force: :cascade do |t|
+  create_table "whitelist_mails", id: :integer, charset: "utf8mb3", collation: "utf8mb3_general_ci", force: :cascade do |t|
     t.string "recipient", default: "", null: false
     t.string "senderdomain", default: "", null: false
     t.string "digest", null: false
@@ -57,5 +61,4 @@ ActiveRecord::Schema[7.1].define(version: 2022_10_15_175608) do
     t.index ["digest"], name: "index_whitelist_mails_on_digest"
     t.index ["recipient", "senderdomain"], name: "idx_recipient_senderdomain", unique: true
   end
-
 end

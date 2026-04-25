@@ -64,8 +64,9 @@ class SisitoPerformanceMonitor
     puts "【重要インデックス状況】"
     indexes = [
       'idx_timestamp_addresser',
-      'idx_reason_destination', 
-      'idx_recipient_senderdomain_timestamp'
+      'idx_reason_timestamp',
+      'idx_recipient_senderdomain_timestamp',
+      'idx_reason_destination'
     ]
     
     indexes.each do |idx|

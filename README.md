@@ -300,6 +300,8 @@ bundle exec rails db:migrate
 mysql -u root -p sisito_production -e "SHOW FULL PROCESSLIST;"
 ```
 
+Three migrations run in sequence. The first two add composite indexes; the third (cleanup) removes the redundant ones and leaves only the four indexes that the application actually uses.
+
 #### Step 4: Verify Index Creation
 
 ```bash
@@ -320,13 +322,16 @@ mysql -u root -p sisito_production -e "SHOW FULL PROCESSLIST;"
 
 ### Performance Indexes Applied
 
-The following specialized indexes are added for large dataset performance:
+After running `db:migrate`, the following four indexes exist on `bounce_mails`:
 
-* `idx_timestamp_addresser` - Date range analytics queries
-* `idx_reason_destination` - Statistical GROUP BY operations
-* `idx_recipient_senderdomain_timestamp` - Complex filtering and JOINs
-* `idx_addresseralias_recipient_valid` - Conditional indexing for sender statistics
-* `idx_addresser_recipient_fallback` - Fallback queries optimization
+| Index | Columns | Used by |
+|-------|---------|---------|
+| `idx_timestamp_addresser` | `timestamp, addresser` | StatsController date-range queries |
+| `idx_reason_timestamp` | `reason, timestamp` | BounceMailsController / AdminController reason filter |
+| `idx_recipient_senderdomain_timestamp` | `recipient, senderdomain, timestamp` | History pages and whitelist JOINs |
+| `idx_reason_destination` | `reason, destination` | StatsController bounce-type statistics |
+
+No table columns are added or removed; only indexes change.
 
 ### Expected Performance Improvements
 
@@ -346,7 +351,7 @@ The following specialized indexes are added for large dataset performance:
 mysql -u root -p sisito_production < backup_sisito_YYYYMMDD_HHMMSS.sql
 
 # 2. Rollback migrations
-bundle exec rails db:rollback STEP=2
+bundle exec rails db:rollback STEP=3
 
 # 3. Restart application
 bundle exec rails server

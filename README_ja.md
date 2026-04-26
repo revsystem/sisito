@@ -247,6 +247,8 @@ bundle exec rails db:migrate
 mysql -u root -p sisito_production -e "SHOW FULL PROCESSLIST;"
 ```
 
+3本のマイグレーションが順に実行されます。最初の2本で複合インデックスが追加され、3本目（クリーンアップ）で重複インデックスが削除されます。最終的にアプリケーションが実際に使用する4本のインデックスだけが残ります。
+
 #### ステップ4: インデックス作成の確認
 
 ```bash
@@ -267,13 +269,16 @@ mysql -u root -p sisito_production -e "SHOW FULL PROCESSLIST;"
 
 ### 適用されるパフォーマンスインデックス
 
-大規模データセットのパフォーマンス向上のため、以下の専用インデックスが追加されます：
+`db:migrate` 実行後、`bounce_mails` テーブルに以下の4本のインデックスが存在します：
 
-* `idx_timestamp_addresser` - 日付範囲分析クエリ用
-* `idx_reason_destination` - 統計GROUP BY操作用
-* `idx_recipient_senderdomain_timestamp` - 複雑なフィルタリングとJOIN用
-* `idx_addresseralias_recipient_valid` - 送信者統計用条件付きインデックス
-* `idx_addresser_recipient_fallback` - フォールバッククエリ最適化用
+| インデックス | カラム | 使用箇所 |
+|-------------|--------|---------|
+| `idx_timestamp_addresser` | `timestamp, addresser` | StatsController 日付範囲クエリ |
+| `idx_reason_timestamp` | `reason, timestamp` | BounceMailsController / AdminController バウンス理由フィルタ |
+| `idx_recipient_senderdomain_timestamp` | `recipient, senderdomain, timestamp` | 履歴ページ・ホワイトリストJOIN |
+| `idx_reason_destination` | `reason, destination` | StatsController バウンス種別統計 |
+
+テーブルのカラム追加・削除はありません。インデックスのみが変更されます。
 
 ### 期待されるパフォーマンス改善
 
@@ -293,7 +298,7 @@ mysql -u root -p sisito_production -e "SHOW FULL PROCESSLIST;"
 mysql -u root -p sisito_production < backup_sisito_YYYYMMDD_HHMMSS.sql
 
 # 2. マイグレーションをロールバック
-bundle exec rails db:rollback STEP=2
+bundle exec rails db:rollback STEP=3
 
 # 3. アプリケーションを再起動
 bundle exec rails server

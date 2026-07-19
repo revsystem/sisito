@@ -302,7 +302,7 @@ GEM
     sassc-embedded (1.80.8)
       sass-embedded (~> 1.80)
     securerandom (0.4.1)
-    sisimai (5.7.0)
+    sisimai (5.7.1)
       oj (>= 3.0.0)
     snaky_hash (2.0.6)
       hashie (>= 0.1.0, < 6)

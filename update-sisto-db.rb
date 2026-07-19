@@ -38,7 +38,15 @@ def process(path, **options)
 end
 
 def insert(mysql, data)
-  values = data.to_hash.values_at(*COLUMNS)
+  hash = data.to_hash
+  # Sisimai >= 5.5.0 removed the smtpagent/smtpcommand keys from #to_hash
+  # (they were backward-compat aliases dropped after 5.4.x). Rebuild them from
+  # their current equivalents so the bounce_mails columns stay populated
+  # regardless of sisimai version. On <= 5.4.x the keys already exist, so ||=
+  # leaves them untouched.
+  hash['smtpagent']   ||= hash['decodedby']
+  hash['smtpcommand'] ||= hash['command']
+  values = hash.values_at(*COLUMNS)
   addresseralias = data.addresser.alias
   addresseralias = data.addresser.address if addresseralias.empty?
   values << addresseralias

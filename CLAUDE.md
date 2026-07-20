@@ -19,7 +19,17 @@ Sisito is a Ruby on Rails 7.2 web application that provides a frontend dashboard
 - **Charts**: C3.js for data visualization
 - **Pagination**: Kaminari (20 per page, max 1000 pages)
 - **Health Check**: `Rack::Health` middleware (mounted in `config.ru`)
-- **Bounce Parsing**: Sisimai gem ~> 5.6
+- **Bounce Parsing**: Sisimai gem ~> 5.7
+
+## Local Environment Constraints (Read First)
+
+This application runs on a **remote server** (see "Pi runs as `RAILS_ENV=development`" in Important Gotchas). The local machine used for editing this repository is **not a runtime environment** and has no database or app server available.
+
+- **Do not pollute the local Ruby environment.** Avoid `bundle install`, `gem install`, or any command that installs gems into the local (mise/system) Ruby just to satisfy a task. Dependency resolution that only rewrites `Gemfile.lock` (e.g. `bundle lock --update=<gem>`) is acceptable, but installing the gems locally is not.
+- **Clean up generated resources.** If a command installs gems, tools, or writes caches into the local Ruby/Bundler home as a side effect, remove them afterwards so the local environment is left as it was found.
+- **Local testing is not possible.** `bundle exec rails test` requires MySQL and Spring, neither of which is available locally (it fails with `Can't connect to local MySQL server` / a read-only Spring socket path). Tests and app behavior must be verified on the remote server or in CI, not locally.
+- **Use rbenv if local Ruby operations are truly unavoidable.** When a task genuinely requires running Ruby locally, use an isolated `rbenv`-managed Ruby rather than installing into the shared environment, and remove anything created once finished.
+- **Security/dependency updates:** editing `Gemfile.lock` (via `bundle lock --update`) is enough to commit; the `bundler-audit` check runs in GitHub Actions, so it does not need to be installed or run locally.
 
 ## Common Commands
 
@@ -214,4 +224,6 @@ Mailcatcher's web UI is exposed on host port `11080` from the `sisito` container
 4. **Session typo**: `session[:pervious_url]` is used throughout — changing it would require updating all references
 5. **No Makefile**: Use `bundle exec rails` and `docker-compose` commands directly
 6. **Current branch**: `heads/Rails_v7.2.3.1` — `master` is the default/production branch
-7. **Pi runs as `RAILS_ENV=development`**: The actual Raspberry Pi deployment (sisito's only real production host) runs with `RAILS_ENV=development` against the `sisito_development` MySQL database — that is also why `monitor_performance.rb` hardcodes `database: 'sisito_development'`. The `production:` block in `config/database.yml` references a non-existent `sisito_production` and uses `root` with no password, so it is **not used in practice**. `bin/deploy.sh` defaults `RAILS_ENV` to `development` to match this; override with `RAILS_ENV=production ./bin/deploy.sh` only if the production block is properly configured first.
+7. **Pi runs as `RAILS_ENV=development`**: The actual Raspberry Pi deployment (sisito's only real production host) runs with `RAILS_ENV=development` against the `sisito_development` MySQL database — that is also why `monitor_performance.rb` hardcodes `database: 'sisito_development'`. The `production:` block in `config/database.yml` references a non-existent `sisito_production` and uses `root` with no password, so it is **not used in practice**. `bin/deploy.sh` defaults `RAILS_ENV` to `development` to match this; override with `RAILS_ENV=production ./bin/deploy.sh` only if the production block is properly configured first. Deployment procedure, pre-checks and post-deploy verification are maintained in a local (gitignored) `.claude/skills/sisito-deploy` skill, not in this file.
+8. Sisimai `to_hash` field rename: sisimai dropped the `smtpagent`/`smtpcommand` keys from `Fact#to_hash` at 5.5.0 (backward-compat aliases for `decodedby`/`command`, kept only through 5.4.x). The direct-SQL ingestion scripts read these via `to_hash.values_at`, so on sisimai >= 5.5.0 they must rebuild them from `decodedby`/`command` or the `bounce_mails` INSERT stores nil; `docker/postfix/collect.rb` also still calls the removed `Sisimai.make` (use `Sisimai.rise`)
+9. Spring preloader caches the app: `spring` is in the development group and the Pi runs `RAILS_ENV=development`, so a preloaded process keeps the previous app and gems in memory. After a gem change (deploy or a local bundle change) `rails` commands report stale versions until `spring stop` is run or `DISABLE_SPRING=1` is set.

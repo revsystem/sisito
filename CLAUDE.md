@@ -163,7 +163,7 @@ These scripts live at the repository root (not under `bin/`) and are invoked man
 Sisimai-based bounce ingestion script. Reads bounce emails from a Maildir-style directory (passed as the first argv), parses them with `Sisimai.rise`, and inserts each result into `bounce_mails`. Connects directly to MySQL (`bounce` / `bounce` / `sisito_development`) without going through ActiveRecord, so timestamps are stored via `FROM_UNIXTIME(...)` and the `digest` column is populated with `SHA1(recipient)`. The Postfix container's `/collect.rb` is a similar in-container variant.
 
 ```bash
-ruby update-sisto-db.rb /var/spool/sisito/mail
+mise exec -- ruby update-sisto-db.rb /var/spool/sisito/mail
 ```
 
 ### `monitor_performance.rb`

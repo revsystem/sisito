@@ -103,10 +103,17 @@ def process(path, **options)
 end
 
 def insert(mysql, data)
-  values = data.to_hash.values_at(*COLUMNS)
+  hash = data.to_hash
+  # sisimai 5.5.0 以降は #to_hash から smtpagent/smtpcommand キーが削除された
+  # (5.4.x までの後方互換エイリアスが廃止された)。現在の同等キーから
+  # 再構築し、sisimai のバージョンに関わらず bounce_mails の該当カラムが
+  # 埋まるようにする。
+  hash['smtpagent']   ||= hash['decodedby']
+  hash['smtpcommand'] ||= hash['command']
+  values = hash.values_at(*COLUMNS)
   addresseralias = data.addresser.alias
-  addresseralias = data.addresser if addresseralias.empty?
-  values << addresseralias.to_s
+  addresseralias = data.addresser.address if addresseralias.empty?
+  values << addresseralias
   columns = (COLUMNS + ['addresseralias', 'digest', 'created_at', 'updated_at']).join(?,)
   timestamp = values.shift
   values = (["FROM_UNIXTIME(#{timestamp})"] + values.map(&:inspect) + ['SHA1(recipient)', 'NOW()', 'NOW()']).join(?,)

@@ -1,30 +1,29 @@
-FROM ubuntu:jammy-20221003
+FROM ruby:3.4.9-slim-bookworm
 
 ENV DEBIAN_FRONTEND noninteractive
 
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
     build-essential \
-    ruby \
-    ruby-dev \
     libxml2-dev \
-    libxslt-dev \
+    libxslt1-dev \
     wget \
-    mysql-client \
-    libmysqlclient-dev \
+    default-mysql-client \
+    default-libmysqlclient-dev \
     curl \
-    nodejs \
+    gnupg \
     libsqlite3-dev \
     liblzma-dev \
     zlib1g-dev \
     libssl-dev \
     libreadline-dev \
     libyaml-dev \
-    libxslt1-dev \
     libcurl4-openssl-dev \
-    software-properties-common \
     libffi-dev \
+    pkg-config \
     tzdata && \
+    curl -fsSL https://deb.nodesource.com/setup_22.x | bash - && \
+    apt-get install -y --no-install-recommends nodejs && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
@@ -47,8 +46,14 @@ RUN wget -q https://github.com/Yelp/dumb-init/releases/download/v${DUMB_INIT_VER
 RUN mkdir /tmp/sisito
 COPY Gemfile /tmp/sisito
 COPY Gemfile.lock /tmp/sisito
+# The base image presets BUNDLE_APP_CONFIG=/usr/local/bundle, which would make
+# `bundle config set --local` write .bundle/config there instead of next to
+# this Gemfile; override it so the config lands where the later `cp` expects it.
+ENV BUNDLE_APP_CONFIG=/tmp/sisito/.bundle
 RUN cd /tmp/sisito && \
-    bundle install -j4 --deployment
+    bundle config set --local deployment true && \
+    bundle config set --local path vendor/bundle && \
+    bundle install -j4
 
 RUN mkdir -p /var/www/sisito/tmp/pids
 COPY . /var/www/sisito
@@ -63,6 +68,10 @@ COPY docker/sisito/ /
 RUN chmod +x /init.sh /migrate.sh
 
 WORKDIR /var/www/sisito
+# Re-point BUNDLE_APP_CONFIG at the copied .bundle/config (see the build-stage
+# override above) so `bundle exec` at runtime honors deployment/path settings
+# instead of falling back to the base image's global /usr/local/bundle.
+ENV BUNDLE_APP_CONFIG=/var/www/sisito/.bundle
 
 ENTRYPOINT [ \
   "switch", \

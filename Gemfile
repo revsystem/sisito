@@ -6,7 +6,7 @@ end
 
 gem 'base64', '~> 0.2.0'
 gem 'mutex_m', '~> 0.2.0'
-gem 'rails', '~> 7.2', '>= 7.2.3.1'
+gem 'rails', '~> 7.2', '>= 7.2.3.2'
 gem 'puma', '~> 8.0', '>= 8.0.2'
 gem 'terser', '~> 1.2'
 gem 'jquery-rails', '~> 4.6'

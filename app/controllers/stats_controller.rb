@@ -7,7 +7,7 @@ class StatsController < ApplicationController
 
     # Recently Bounced
     @count_by_date = cache_if_production("count_by_date_#{@recent_days_from}_#{@recent_days_to}_#{@addresser}", expires_in: 15.minutes) do
-      relation = BounceMail.where('timestamp >= ? AND timestamp < ?', @recent_days_from, @recent_days_to + 1.day)
+      relation = BounceMail.within_period(@recent_days_from, @recent_days_to)
 
       relation = relation.where(addresser: @addresser) if @addresser.present?
 
@@ -22,7 +22,7 @@ class StatsController < ApplicationController
     end
 
     @count_by_destination = cache_if_production("count_by_destination_#{@recent_days_from}_#{@recent_days_to}_#{@addresser}", expires_in: 15.minutes) do
-      relation = BounceMail.where('timestamp >= ? AND timestamp < ?', @recent_days_from, @recent_days_to + 1.day)
+      relation = BounceMail.within_period(@recent_days_from, @recent_days_to)
 
       relation = relation.where(addresser: @addresser) if @addresser.present?
 
@@ -31,7 +31,7 @@ class StatsController < ApplicationController
     end
 
     @count_by_reason = cache_if_production("count_by_reason_#{@recent_days_from}_#{@recent_days_to}_#{@addresser}", expires_in: 15.minutes) do
-      relation = BounceMail.where('timestamp >= ? AND timestamp < ?', @recent_days_from, @recent_days_to + 1.day)
+      relation = BounceMail.within_period(@recent_days_from, @recent_days_to)
 
       relation = relation.where(addresser: @addresser) if @addresser.present?
 
@@ -41,7 +41,7 @@ class StatsController < ApplicationController
 
     @count_by_reason_date = cache_if_production("count_by_date_reason_#{@recent_days_from}_#{@recent_days_to}_#{@addresser}", expires_in: 15.minutes) do
       relation = BounceMail.select(:reason, Arel.sql("DATE(timestamp) AS date"), Arel.sql("COUNT(reason) AS count_reason"))
-                           .where('timestamp >= ? AND timestamp < ?', @recent_days_from, @recent_days_to + 1.day)
+                           .within_period(@recent_days_from, @recent_days_to)
 
       relation = relation.where(addresser: @addresser) if @addresser.present?
 
@@ -58,8 +58,8 @@ class StatsController < ApplicationController
 
     unless Rails.application.config.sisito[:shorten_stats]
       # Unique Recipient Bounced
-      @uniq_count_by_destination = cache_if_production("uniq_count_by_destination_#{@addresser}", expires_in: 2.hours) do
-        relation = BounceMail
+      @uniq_count_by_destination = cache_if_production("uniq_count_by_destination_#{@recent_days_from}_#{@recent_days_to}_#{@addresser}", expires_in: 15.minutes) do
+        relation = BounceMail.within_period(@recent_days_from, @recent_days_to)
 
         relation = relation.where(addresser: @addresser) if @addresser.present?
 
@@ -67,8 +67,8 @@ class StatsController < ApplicationController
                 .sort_by(&:last).reverse.to_h
       end
 
-      @uniq_count_by_reason = cache_if_production("uniq_count_by_reason_#{@addresser}", expires_in: 2.hours) do
-        relation = BounceMail
+      @uniq_count_by_reason = cache_if_production("uniq_count_by_reason_#{@recent_days_from}_#{@recent_days_to}_#{@addresser}", expires_in: 15.minutes) do
+        relation = BounceMail.within_period(@recent_days_from, @recent_days_to)
 
         relation = relation.where(addresser: @addresser) if @addresser.present?
 
@@ -77,7 +77,7 @@ class StatsController < ApplicationController
                 .sort_by(&:last).reverse.to_h
       end
 
-      @uniq_count_by_sender = cache_if_production("uniq_count_by_sender_#{@addresser}", expires_in: 2.hours) do
+      @uniq_count_by_sender = cache_if_production("uniq_count_by_sender_#{@recent_days_from}_#{@recent_days_to}_#{@addresser}", expires_in: 15.minutes) do
 
         select_columns = <<-SQL
           COUNT(DISTINCT recipient) AS count_recipient,
@@ -88,6 +88,7 @@ class StatsController < ApplicationController
         SQL
 
         relation = BounceMail.select(Arel.sql(select_columns))
+                             .within_period(@recent_days_from, @recent_days_to)
 
         relation = relation.where(addresser: @addresser) if @addresser.present?
 
@@ -97,11 +98,11 @@ class StatsController < ApplicationController
       end
 
       # Bounced by Type
-      @bounced_by_type = cache_if_production("bounced_by_type_#{@addresser}", expires_in: 2.hours) do
+      @bounced_by_type = cache_if_production("bounced_by_type_#{@recent_days_from}_#{@recent_days_to}_#{@addresser}", expires_in: 15.minutes) do
 
         count_by_reason_destination = {}
 
-        relation = BounceMail
+        relation = BounceMail.within_period(@recent_days_from, @recent_days_to)
 
         relation = relation.where(addresser: @addresser) if @addresser.present?
 

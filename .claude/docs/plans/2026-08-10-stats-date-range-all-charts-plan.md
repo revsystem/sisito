@@ -336,14 +336,14 @@ GROUP BY reason, destination ORDER BY 1, 3 DESC;
 
 キャッシュキーの正しさは Pi では検証できない（`cache_if_production` が素通しのため）。差分レビューで以下 8 個のキーすべてに `#{@recent_days_from}_#{@recent_days_to}` が入っていることを 1 つずつ確認する。
 
-- [ ] `count_by_date_...`
-- [ ] `count_by_destination_...`
-- [ ] `count_by_reason_...`
-- [ ] `count_by_date_reason_...`（変数名は `@count_by_reason_date` だがキーは語順が逆。既存のまま変えない）
-- [ ] `uniq_count_by_destination_...`
-- [ ] `uniq_count_by_reason_...`
-- [ ] `uniq_count_by_sender_...`
-- [ ] `bounced_by_type_...`
+- [x] `count_by_date_...`
+- [x] `count_by_destination_...`
+- [x] `count_by_reason_...`
+- [x] `count_by_date_reason_...`（変数名は `@count_by_reason_date` だがキーは語順が逆。既存のまま変えない）
+- [x] `uniq_count_by_destination_...`
+- [x] `uniq_count_by_reason_...`
+- [x] `uniq_count_by_sender_...`
+- [x] `bounced_by_type_...`
 
 上 4 つは変更前から期間が入っているため確認のみ。下 4 つが今回の追加対象。
 
@@ -355,11 +355,11 @@ GROUP BY reason, destination ORDER BY 1, 3 DESC;
 
 挙動を変えない置き換えのユニット。ここだけで一度検証を通し、等価性を確定させてから B に進む。B と混ぜると、下半分の数値変化に紛れて上半分の非等価に気づけなくなる。
 
-- [ ] A-1: 反映前の基準値を採取する。Pi で過去の閉じた期間（例: `?from=2026-08-01&to=2026-08-02`）の `/` を開き、Recently Bounced の 4 チャートの数値を記録する
+- [x] A-1: 反映前の基準値を採取する。Pi で過去の閉じた期間（例: `?from=2026-08-01&to=2026-08-02`）の `/` を開き、Recently Bounced の 4 チャートの数値を記録する
 - [x] A-2: `app/models/bounce_mail.rb` に `scope :within_period` を追加する（変更1。引数がカレンダー日である契約をコメントに書く）
 - [x] A-3: `stats_controller.rb` の `@count_by_date`・`@count_by_destination`・`@count_by_reason` の 3 箇所を `BounceMail.within_period(@recent_days_from, @recent_days_to)` に置き換える（変更2）
 - [x] A-4: `@count_by_reason_date` の `select(...).where(...)` を `select(...).within_period(...)` に置き換える（変更2）
-- [ ] A-5: Pi に反映して `spring stop` を実行し、A-1 と同じ URL で 4 チャートの数値が完全に一致することを確認する（検証手順 1）
+- [x] A-5: Pi に反映して `spring stop` を実行し、A-1 と同じ URL で 4 チャートの数値が完全に一致することを確認する（検証手順 1）
 
 ### ユニットB: 下半分 4 ブロックへの期間フィルタ適用（並列不可: 依存 = ユニットA）
 
@@ -379,12 +379,12 @@ C-1（ヘルパー）だけは先に必要。C-2 と C-3 は別ファイルで�
 
 ### ユニットD: Pi での検証（並列不可: 依存 = ユニットC）
 
-- [ ] D-0: ユニット B・C の変更を Pi に反映し、`spring stop` を実行する。これを飛ばすと D-1 以降が旧プロセスで走り、変更が反映されていないのに「動いていない」と誤診する（CLAUDE.md の Gotcha 9）
-- [ ] D-1: 既定表示で両セクションが描画され、見出しに期間が出ることを確認する（検証手順 2・3）
-- [ ] D-2: 1 日だけの範囲に絞り、下半分の数値が変わることを確認する（検証手順 4）
-- [ ] D-3: destination / sender / bounced_by_type の 3 系統を同期間の直接 SQL と突き合わせる。比較対象は個別スライスで、中央の合計ではない（検証手順 5）
-- [ ] D-4: バウンスの無い期間で例外にならず、両セクションに `No data in this period.` が出ることを確認する（検証手順 6）
-- [ ] D-5: addresser を選択した状態で D-2〜D-4 が成立することを確認する（検証手順 7）
+- [x] D-0: ユニット B・C の変更を Pi に反映し、`spring stop` を実行する。これを飛ばすと D-1 以降が旧プロセスで走り、変更が反映されていないのに「動いていない」と誤診する（CLAUDE.md の Gotcha 9）
+- [x] D-1: 既定表示で両セクションが描画され、見出しに期間が出ることを確認する（検証手順 2・3）
+- [x] D-2: 1 日だけの範囲に絞り、下半分の数値が変わることを確認する（検証手順 4）
+- [x] D-3: destination / sender / bounced_by_type の 3 系統を同期間の直接 SQL と突き合わせる。比較対象は個別スライスで、中央の合計ではない（検証手順 5）
+- [x] D-4: バウンスの無い期間で例外にならず、両セクションに `No data in this period.` が出ることを確認する（検証手順 6）
+- [x] D-5: addresser を選択した状態で D-2〜D-4 が成立することを確認する（検証手順 7）
 
 ### 別 Issue として切り出すもの（本タスクでは実施しない）
 

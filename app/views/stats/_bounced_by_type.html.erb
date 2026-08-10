@@ -1,7 +1,12 @@
 <div class="page-header">
   <span class="glyphicon glyphicon-stats"></span>
   Bounced by Type
+  <span class="text-muted"><%= stats_period_label(@recent_days_from, @recent_days_to) %></span>
 </div>
+
+<% if @bounced_by_type.blank? %>
+  <p class="text-muted">No data in this period.</p>
+<% end %>
 
 <% columns = 4 %>
 <% @bounced_by_type.sort_by(&:first).each_slice(columns) do |chunk| %>

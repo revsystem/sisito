@@ -30,6 +30,7 @@ This application runs on a **remote server** (see "Pi runs as `RAILS_ENV=develop
 - **Local testing is not possible.** `bundle exec rails test` requires MySQL and Spring, neither of which is available locally (it fails with `Can't connect to local MySQL server` / a read-only Spring socket path). Tests and app behavior must be verified on the remote server or in CI, not locally.
 - **Use rbenv if local Ruby operations are truly unavoidable.** When a task genuinely requires running Ruby locally, use an isolated `rbenv`-managed Ruby rather than installing into the shared environment, and remove anything created once finished.
 - **Security/dependency updates:** editing `Gemfile.lock` (via `bundle lock --update`) is enough to commit; the `bundler-audit` check runs in GitHub Actions, so it does not need to be installed or run locally.
+- **Check whether "local" actually means the Pi.** Claude Code sessions and worktrees (e.g. under `~/sisito/.claude/worktrees/...`) sometimes run directly on the Raspberry Pi host itself (`hostname` reports `raspberry-iot`, with a live `puma` process and reachable MySQL) rather than on a separate editing machine. Verify with `hostname`/`ps aux | grep puma` before assuming the constraints above apply — when the session is on the Pi, it *is* the runtime environment, so installing gems (e.g. to pull in a CVE-fixed version) is fine there, ideally isolated to the worktree's own `vendor/bundle` via `bundle config set --local path vendor/bundle` rather than the shared system/mise Ruby.
 
 ## Common Commands
 

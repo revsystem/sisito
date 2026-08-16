@@ -1,0 +1,45 @@
+DEFAULTS: &DEFAULTS
+  lhost: mail.example.com
+  rhost: mail.test1.example.com
+  alias: default@test1.example.com
+  listid: ""
+  reason: userunknown
+  action: failed
+  subject: hello
+  messageid: default@xxx.mail
+  smtpagent: MTA::Postfix
+  hardbounce: false
+  smtpcommand: RCPT
+  destination: test1.example.com
+  senderdomain: example.com
+  feedbacktype: ""
+  diagnosticcode: "550 no such user"
+  deliverystatus: "5.0.0"
+  timezoneoffset: "+0900"
+  addresser: no-reply@example.com
+  addresseralias: ""
+  digest: ""
+
+boundary_start:
+  <<: *DEFAULTS
+  timestamp: 2026-08-01 00:00:00
+  recipient: boundary_start@test1.example.com
+
+day_before_start:
+  <<: *DEFAULTS
+  timestamp: 2026-07-31 23:59:59
+  destination: excluded-before.example.com
+  recipient: day_before_start@excluded-before.example.com
+
+boundary_end:
+  <<: *DEFAULTS
+  timestamp: 2026-08-02 23:59:59
+  reason: filtered
+  destination: test2.example.com
+  recipient: boundary_end@test2.example.com
+
+boundary_next_day:
+  <<: *DEFAULTS
+  timestamp: 2026-08-03 00:00:00
+  destination: excluded-after.example.com
+  recipient: boundary_next_day@excluded-after.example.com

@@ -1,9 +1,8 @@
 require 'test_helper'
 
-class MonitorControllerTest < ActionDispatch::IntegrationTest
+class StatusControllerTest < ActionDispatch::IntegrationTest
   test "should get index" do
-    get monitor_index_url
+    get status_url
     assert_response :success
   end
-
 end

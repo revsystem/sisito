@@ -208,20 +208,21 @@ Mailcatcher's web UI is exposed on host port `11080` from the `sisito` container
 
 ### Testing
 - **Framework**: Rails default Minitest
-- **Coverage**: Minimal — only `test/controllers/status_controller_test.rb` exists
-- **Known issue**: Test file defines `MonitorControllerTest` using `monitor_index_url`, but no `monitor` route exists in `config/routes.rb`. The test is stale and will fail.
-- Fixtures directory exists but contains no fixture files
+- **Coverage**: 13 tests / 29 assertions across four files — `test/models/bounce_mail_test.rb` (4), `test/helpers/stats_helper_test.rb` (6), `test/controllers/stats_controller_test.rb` (2), `test/controllers/status_controller_test.rb` (1)
+- `test/fixtures/bounce_mails.yml` provides the shared fixture set (a `DEFAULTS` YAML anchor the individual records merge from)
+- The old stale `MonitorControllerTest` (referencing a non-existent `monitor_index_url`) has been removed; the suite passes clean
 
 ### CI/CD
-- **GitHub Actions**: `bundler-audit` workflow only (push to `master`, PRs, weekly cron)
-- **No test CI workflow** — tests are not run automatically
+- **GitHub Actions**: two workflows, both on push to `master` and on PRs
+  - `bundler-audit.yml` (job `audit`) — `bundle-audit check --update`, plus a weekly Monday cron
+  - `test.yml` (job `test`) — `bin/rails test` against a `mysql:8.0` service container, with `RAILS_ENV=test`, `DISABLE_SPRING=1` (see Gotcha 9) and `DATABASE_URL=mysql2://root@127.0.0.1:3306/sisito_test`; the DB is prepared with `db:create db:schema:load` (schema load, not migrations)
 - **Default branch**: `master`
 
 ## Important Gotchas
 
 1. **`eval` in initializer**: `config/initializers/sisito.rb` uses `eval()` on the `blacklisted_label_filter` YAML value — never accept untrusted YAML
 2. **MySQL ignores partial indexes**: `add_index ..., where: ...` in Rails compiles to plain `CREATE INDEX` on MySQL (the `WHERE` predicate is silently dropped). Migration `20250705000002` was written under the assumption it would be honored; the resulting full indexes ended up duplicating two of the `20250705000001` indexes, which is why `20260425000001` cleans them up
-3. **Stale test**: The only controller test references a non-existent route — needs to be fixed before adding test CI
+3. **Test CI loads the schema, it never runs migrations**: `test.yml` prepares the database with `db:create db:schema:load`, so a green `test` job says nothing about whether the migrations in `db/migrate/` actually apply. A migration that is broken, or one whose effect was never written back into `db/schema.rb`, passes CI silently — verify migrations against a real database (the Pi) instead. (The old stale `MonitorControllerTest`, which referenced a non-existent `monitor_index_url`, was removed when the test workflow was added in `3e2f0c9`.)
 4. **Session typo**: `session[:pervious_url]` is used throughout — changing it would require updating all references
 5. **No Makefile**: Use `bundle exec rails` and `docker-compose` commands directly
 6. **Current branch**: `heads/Rails_v7.2.3.1` — `master` is the default/production branch
@@ -231,3 +232,4 @@ Mailcatcher's web UI is exposed on host port `11080` from the `sisito` container
 10. **`ruby:*-slim-bookworm` presets `BUNDLE_APP_CONFIG=/usr/local/bundle`**: the official Ruby image sets this globally, so `bundle config set --local ...` writes `.bundle/config` there instead of next to the project's `Gemfile` — the `Dockerfile.sisito` build stage (`/tmp/sisito`) and the final app directory (`/var/www/sisito`) each override `BUNDLE_APP_CONFIG` explicitly to keep `.bundle/config` where the Dockerfile's later `cp`/runtime expects it. Also needs `pkg-config` installed explicitly (the `sqlite3` gem's native extension build fails without it) and Node 22 via NodeSource (Debian bookworm's apt `nodejs` is too old for ExecJS). Testing the `postfix` container's demo bounce loop requires real DNS resolution (a nonexistent TLD like `a.b.c` must resolve to an authoritative NXDOMAIN to trigger an immediate hard bounce); in a network-sandboxed environment DNS lookups return a soft "try again" error instead, so mail sits deferred in the queue forever. To verify `/collect.rb` without real DNS, drop a synthetic Postfix-format bounce `.eml` directly into `/root/Maildir/new` and let the next loop iteration pick it up.
 11. **Cache-key bugs are undetectable on the Pi**: `ApplicationController#cache_if_production` only routes through `Rails.cache.fetch` when `Rails.env.production?`; otherwise it just `yield`s the block. Combined with Gotcha 7 (the Pi runs `RAILS_ENV=development`), caching is inert on the only real host. A wrong or missing cache key still renders correct numbers there, so any change to a `cache_if_production` key must be verified by reading the diff, never by observing behavior. Every key must include all filter values that affect the result (date range, addresser, …).
 12. **`etc` slice double-counting (fixed in #38, PR #42)**: all six pie/donut chart blocks used to share `<collection>.slice(0, 10).push(['etc', <values>.slice(3..-1).try(:sum)])` — the individual slices showed the top 10 while `etc` summed entries 4 onward, so entries 4–10 were counted twice and the chart total exceeded the real count. `StatsHelper#chart_columns(collection, top: 3)` now owns both the slice and the `etc` sum behind one `top`, so the two can't disagree; all six view call sites go through it. The old bug's boundary case is worth remembering when writing similar aggregation code elsewhere: `slice(N..-1)` returns `nil` once the collection is shorter than `N`, but returns `[]` (not `nil`) at exactly `N` remaining — `[].sum` is `0`, and `0.present?` is `true`, so a `present?`-based guard silently lets an `etc: 0` entry through right at that boundary. `chart_columns` uses `drop(top)` (always an `Array`) plus `.empty?` instead, which doesn't have that gap.
+13. **`tmp_mail/` holds real personal data and this repo is public**: on the Pi, `bin/sync-and-ingest.sh` stages rsynced bounce messages under `tmp_mail/` (`incoming/`, `failed/`, `unrecognized/`, plus `processed.log`). Those are real messages — subjects, bodies and the mail addresses of actual recipients. `revsystem/sisito` is a **public** repository, so `/tmp_mail/` is in `.gitignore`; never remove that entry, and never stage this tree with a broad `git add -A` / `git add .`. The same caution applies to anything pulled from `ml.msc-dance.jp` into a scratch directory for debugging — delete it when finished.

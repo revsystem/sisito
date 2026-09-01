@@ -185,7 +185,7 @@ Production MySQL/MariaDB tuning preset. Copy to `/etc/mysql/mysql.conf.d/sisito_
 |--------------|-------------------------|------------------------------|------|
 | `sisito`     | `Dockerfile.sisito`     | `ruby:3.4.9-slim-bookworm`   | Rails app (Puma). Node 22 installed via NodeSource (Debian bookworm's apt `nodejs` is too old for ExecJS). Runs `bundle config set --local deployment/path` + `bundle install`, then `migrate.sh` → `init.sh` via `entrykit` + `dumb-init`. Timezone forced to Asia/Tokyo. SMTP port rewritten 25 → 1025 to point at Mailcatcher. |
 | `sisito_api` | `Dockerfile.sisito-api` | `alpine`                     | Go binary `sisito-api`, downloaded pre-built from `winebarrel/sisito-api` GitHub Releases (version pinned via the `SISITO_API_VERSION` ARG). Serves `/blacklist` and related JSON endpoints on :8080. |
-| `postfix`    | `Dockerfile.postfix`    | `ubuntu:jammy-20221003`      | Bounce-receiving Postfix + `sisimai` (pinned `5.7.1`) + `mysql2`. `init.sh` mails a nonexistent domain every 10s to generate a demo bounce, and the container-internal `/collect.rb` (`Sisimai.rise`) parses incoming bounces and inserts them into the shared MySQL. |
+| `postfix`    | `Dockerfile.postfix`    | `ubuntu:jammy-20221003`      | Bounce-receiving Postfix + `sisimai` (pinned `5.7.2`) + `mysql2`. `init.sh` mails a nonexistent domain every 10s to generate a demo bounce, and the container-internal `/collect.rb` (`Sisimai.rise`) parses incoming bounces and inserts them into the shared MySQL. |
 | `mysql`      | (image: `mysql:8.0.32`) | —                            | Shared database. `MYSQL_ALLOW_EMPTY_PASSWORD=1`, TZ=Asia/Tokyo. |
 
 Mailcatcher's web UI is exposed on host port `11080` from the `sisito` container (port `1080` inside).

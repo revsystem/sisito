@@ -214,11 +214,11 @@ Technology Stack の Rails バージョン表記、Testing セクション（sta
 7 Unit = 7 PR（論点2で確定）。各 Unit は前段の Pi 検証完了が前提のため、全て並列不可・逐次実行（ステージング無し環境で切り分け精度を優先する方針上、意図的に並列化しない）。
 
 ### ユニット1: load_defaultsのapplication.rb一本化（並列不可: 依存 = なし）
-- [ ] 1-1: `config/application.rb` の class 本体先頭に `config.load_defaults 7.0` を追加
-- [ ] 1-2: `config/environments/development.rb` から `config.load_defaults 7.0` の行を削除
-- [ ] 1-3: CI green を確認
-- [ ] 1-4: 共通 Pi 検証手順（spring stop → runner起動確認 → deploy.sh → 経路一巡）を実施
-- [ ] 1-5: PR作成・Issue紐付け・マージ
+- [x] 1-1: `config/application.rb` の class 本体先頭に `config.load_defaults 7.0` を追加
+- [x] 1-2: `config/environments/development.rb` から `config.load_defaults 7.0` の行を削除
+- [x] 1-3: CI green を確認（audit/test とも pass）
+- [x] 1-4: 共通 Pi 検証手順を実施。マージ前に隔離 git worktree で boot確認（`DISABLE_SPRING=1` 必須、Spring経由だと旧プロセスが応答することを確認済み）、マージ後に `bin/deploy.sh` 実行 → `/`, `/bounce_mails`, `/whitelist_mails`, `/sender`, `/status` が200、`/admin` が401(Digest認証の想定挙動)を確認
+- [x] 1-5: PR作成・Issue紐付け・マージ（Issue #50、PR #51、squash mergeで完了）
 
 ### ユニット2: load_defaults 7.0→7.1（並列不可: 依存 = ユニット1）
 - [ ] 2-1: `config/application.rb` の `config.load_defaults` を `7.1` に変更

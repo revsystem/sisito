@@ -234,10 +234,23 @@ Technology Stack の Rails バージョン表記、Testing セクション（sta
 - [x] 3-5: PR作成・Issue紐付け・マージ（Issue #54、PR #55。w9:p2レビューで軽微な文言指摘1点を反映後にマージ）
 
 ### ユニット4: new_framework_defaults.rb削除（並列不可: 依存 = ユニット3。gemバンプ前に必須）
-- [ ] 4-1: `git rm config/initializers/new_framework_defaults.rb`
-- [ ] 4-2: CI green を確認
-- [ ] 4-3: 共通 Pi 検証手順を実施
-- [ ] 4-4: PR作成・Issue紐付け・マージ（ユニット5より前に必ずマージする）
+- [x] 4-1: `git rm config/initializers/new_framework_defaults.rb`
+- [x] 4-2: CI green を確認
+- [x] 4-3: 共通 Pi 検証手順を実施（隔離worktreeでboot確認 → マージ後deploy.sh → 主要経路200/401）
+- [x] 4-4: PR作成・Issue紐付け・マージ（Issue #56、PR #57）
+
+**ここまで完了（2026-09-13深夜、ユーザーの承認のもと agents 間の役割分担で進行）。Unit 5 は意図的に未着手。理由は下記「Unit 5 着手前の申し送り」を参照。**
+
+## Unit 5 着手前の申し送り
+
+Unit 5（Gemfileのrailsを~> 8.1へ）は以下の理由でユーザー不在のまま着手しない:
+
+- Unit 1〜4は全て設定ファイルの変更で、ロールバックは revert commit → `git pull` → Puma再起動で完結し、`vendor/bundle`には触れない。Unit 5は`bundle install`でPi上の共有gemツリー自体を書き換えるため、後戻りは「旧lockfileの復元＋再インストール」になり、半端な状態が実際に発生しうる
+- `bin/sync-and-ingest.sh`が毎晩20:00に同じ`vendor/bundle`を使う。Unit 5をユーザー不在のまま深夜に実行し、起動はしても一部gemの相互作用に問題があった場合、気づくのは次のcron失敗時になる（2026年8月に診断した4日間のingestion停止と同種の再発パターン、今回は依存関係の変更幅がはるかに大きい）
+- gem互換性調査（`.claude/docs/research/2026-09-13-rails-8-gem-compat-survey.md`）は22gem中15gemが「対応不明」、5gemが2013〜2019年で更新停止と判定されており、実機検証は未実施と明記されている。Unit 1〜4はRailsソースコードを直接確認して検証できたが、Unit 5の入力はそこまで確度が高くない
+- `--conservative`が解決に失敗した場合のフォールバック（外すか対象gemを明示列挙）は解空間が広く、2エージェントの議論で収束させられる性質の判断ではない
+
+ユーザーが戻ったら、Unit 5から通常の事前宣言ゲート付きで再開する。
 
 ### ユニット5: Gemfileのrailsを~> 8.1へ（並列不可: 依存 = ユニット4）
 - [ ] 5-1: `Gemfile` の `rails` 行を `gem 'rails', '~> 8.1'` に変更

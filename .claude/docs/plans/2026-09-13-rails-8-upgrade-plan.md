@@ -95,9 +95,9 @@ Research で洗い出した 7.1 の影響項目（`add_autoload_paths_to_load_pa
 config.load_defaults 7.2
 ```
 
-このバージョンで YJIT が自動有効化される（`yjit = true`、環境非依存）。Pi 上で `ruby -e 'p defined?(RubyVM::YJIT)'` を実行し YJIT 対応ビルドか確認したうえで、Pi 検証時にメモリ使用量（`free -h` 等）を Before/After で比較する。8.1 まで到達すれば development では自動的に無効へ戻る（`yjit = !Rails.env.local?`）ため、7.2 到達時点だけの一時的な影響として扱う。
+このバージョンで YJIT が自動有効化される（`yjit = true`、環境非依存）……はずだったが、Pi 上で `mise exec -- ruby -e 'p defined?(RubyVM::YJIT)'` を実行したところ `nil`。Pi の Ruby 3.4.9（mise管理、aarch64-linux）は YJIT非対応ビルドで、Rails側は `initializer :enable_yjit` を `if config.yjit && defined?(RubyVM::YJIT.enable)` でガードしている（`railties/lib/rails/application/finisher.rb` v7.2.3.2 L231-234、一次ソース確認済み）ため、この環境では単に no-op になる。したがってメモリ増加の懸念は実質発生しない。8.1 まで到達すれば development では自動的に無効へ戻る（`yjit = !Rails.env.local?`）ため、いずれにせよ一時的な設定である点は変わらない。
 
-**Pi 検証**: 共通手順に加えて、YJIT 有効化確認とメモリ使用量の Before/After 比較を行う。
+**Pi 検証**: 共通手順に加えて、`RubyVM::YJIT` が未定義のままであること（=no-opの確認）を再確認する。
 
 ### Unit 4: `new_framework_defaults.rb` の削除（gem バンプ前に必須）
 
@@ -221,10 +221,10 @@ Technology Stack の Rails バージョン表記、Testing セクション（sta
 - [x] 1-5: PR作成・Issue紐付け・マージ（Issue #50、PR #51、squash mergeで完了）
 
 ### ユニット2: load_defaults 7.0→7.1（並列不可: 依存 = ユニット1）
-- [ ] 2-1: `config/application.rb` の `config.load_defaults` を `7.1` に変更
-- [ ] 2-2: CI green を確認
-- [ ] 2-3: 共通 Pi 検証手順 + `log/` ディレクトリの状態確認（ローテート・外部logrotateとの二重管理有無）
-- [ ] 2-4: PR作成・Issue紐付け・マージ
+- [x] 2-1: `config/application.rb` の `config.load_defaults` を `7.1` に変更
+- [x] 2-2: CI green を確認
+- [x] 2-3: 共通 Pi 検証手順 + `log/` ディレクトリの状態確認。`/etc/logrotate.d/sisito` が既に存在（daily, maxsize 20M, copytruncate, 14世代）。Rails内部ローテート（100MB）とは方式が異なる二重管理だが、現状のログサイズは両閾値を大きく下回り外部側が常に先に発火するため実害なしと判断
+- [x] 2-4: PR作成・Issue紐付け・マージ（Issue #52、PR #53）
 
 ### ユニット3: load_defaults 7.1→7.2（並列不可: 依存 = ユニット2）
 - [ ] 3-1: `config/application.rb` の `config.load_defaults` を `7.2` に変更

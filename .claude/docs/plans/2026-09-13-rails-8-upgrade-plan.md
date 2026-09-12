@@ -97,7 +97,7 @@ config.load_defaults 7.2
 
 このバージョンで YJIT が自動有効化される（`yjit = true`、環境非依存）……はずだったが、Pi 上で `mise exec -- ruby -e 'p defined?(RubyVM::YJIT)'` を実行したところ `nil`。Pi の Ruby 3.4.9（mise管理、aarch64-linux）は YJIT非対応ビルドで、Rails側は `initializer :enable_yjit` を `if config.yjit && defined?(RubyVM::YJIT.enable)` でガードしている（`railties/lib/rails/application/finisher.rb` v7.2.3.2 L231-234、一次ソース確認済み）ため、この環境では単に no-op になる。したがってメモリ増加の懸念は実質発生しない。8.1 まで到達すれば development では自動的に無効へ戻る（`yjit = !Rails.env.local?`）ため、いずれにせよ一時的な設定である点は変わらない。
 
-**Pi 検証**: 共通手順に加えて、YJIT 有効化確認とメモリ使用量の Before/After 比較を行う。
+**Pi 検証**: 共通手順に加えて、`RubyVM::YJIT` が未定義のままであること（=no-opの確認）を再確認する。
 
 ### Unit 4: `new_framework_defaults.rb` の削除（gem バンプ前に必須）
 

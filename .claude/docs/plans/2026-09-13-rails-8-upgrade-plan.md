@@ -227,11 +227,11 @@ Technology Stack の Rails バージョン表記、Testing セクション（sta
 - [x] 2-4: PR作成・Issue紐付け・マージ（Issue #52、PR #53）
 
 ### ユニット3: load_defaults 7.1→7.2（並列不可: 依存 = ユニット2）
-- [ ] 3-1: `config/application.rb` の `config.load_defaults` を `7.2` に変更
-- [ ] 3-2: CI green を確認
-- [ ] 3-3: Pi上で `ruby -e 'p defined?(RubyVM::YJIT)'` を実行しYJIT対応ビルドか確認
-- [ ] 3-4: 共通 Pi 検証手順 + メモリ使用量(`free -h`)のBefore/After比較
-- [ ] 3-5: PR作成・Issue紐付け・マージ
+- [x] 3-1: `config/application.rb` の `config.load_defaults` を `7.2` に変更
+- [x] 3-2: CI green を確認
+- [x] 3-3: Pi上で `mise exec -- ruby -e 'p defined?(RubyVM::YJIT)'` を実行 → `nil`（YJIT非対応ビルド）。Rails側は`defined?(RubyVM::YJIT.enable)`でガードしているためno-opと判断（finisher.rb v7.2.3.2 L231-234で確認）
+- [x] 3-4: 共通 Pi 検証手順 + メモリ使用量(`free -h`)のBefore/After比較 → 2.9Gi used のまま変化なし（no-op判断と整合）
+- [x] 3-5: PR作成・Issue紐付け・マージ（Issue #54、PR #55。w9:p2レビューで軽微な文言指摘1点を反映後にマージ）
 
 ### ユニット4: new_framework_defaults.rb削除（並列不可: 依存 = ユニット3。gemバンプ前に必須）
 - [ ] 4-1: `git rm config/initializers/new_framework_defaults.rb`

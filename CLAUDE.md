@@ -4,13 +4,13 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Sisito is a Ruby on Rails 7.2 web application that provides a frontend dashboard for analyzing email bounce data collected by the Sisimai library. It helps monitor email delivery issues, track blacklisted recipients, and manage email bounce analytics.
+Sisito is a Ruby on Rails 8.1 web application that provides a frontend dashboard for analyzing email bounce data collected by the Sisimai library. It helps monitor email delivery issues, track blacklisted recipients, and manage email bounce analytics.
 
 **Note:** Despite residing under a Go workspace path (`go/src/github.com/...`), this is a pure Ruby on Rails project with no Go source code. The companion `sisito-api` (Go binary) is built from a separate repository and pulled as a pre-built binary in Docker.
 
 ## Technology Stack
 
-- **Framework**: Ruby on Rails ~> 7.2 (currently 7.2.3.1) with explicit Sprockets configuration
+- **Framework**: Ruby on Rails ~> 8.1 (currently 8.1.3.1); stays on Sprockets rather than Rails 8's default Propshaft
 - **Ruby Version**: 3.4.9 (managed via `mise.toml`; Node 22 also pinned for ExecJS)
 - **App Server**: Puma
 - **Database**: MySQL 8.0+ with utf8mb3 charset
@@ -194,7 +194,7 @@ Mailcatcher's web UI is exposed on host port `11080` from the `sisito` container
 
 ### Code Style
 - Standard Rails conventions; **no RuboCop** configured
-- All raw SQL wrapped in `Arel.sql()` for Rails 7.2 compliance
+- All raw SQL wrapped in `Arel.sql()` for Rails compliance
 - Config access via `Rails.application.config.sisito` with `.fetch` / `.dig`
 - HTTP Digest authentication (not Basic) for admin-protected views
 - Known typo: `set_pervious_url` (should be `previous`) — used consistently for session key
@@ -225,7 +225,7 @@ Mailcatcher's web UI is exposed on host port `11080` from the `sisito` container
 3. **Test CI loads the schema, it never runs migrations**: `test.yml` prepares the database with `db:create db:schema:load`, so a green `test` job says nothing about whether the migrations in `db/migrate/` actually apply. A migration that is broken, or one whose effect was never written back into `db/schema.rb`, passes CI silently — verify migrations against a real database (the Pi) instead. (The old stale `MonitorControllerTest`, which referenced a non-existent `monitor_index_url`, was removed when the test workflow was added in `3e2f0c9`.)
 4. **Session typo**: `session[:pervious_url]` is used throughout — changing it would require updating all references
 5. **No Makefile**: Use `bundle exec rails` and `docker-compose` commands directly
-6. **Current branch**: `heads/Rails_v7.2.3.1` — `master` is the default/production branch
+6. **Branching**: `master` is the default/production branch. Earlier history used long-lived version branches named `heads/Rails_v<version>` — that pattern is gone (the oldest one's now-unreachable tip commits are preserved only in the tag `archive_Rails_v5.1.0_branch_tip`, distinct from the ordinary release tag `Rails_v5.1.0` on `master`'s own history). Current practice is a short-lived `heads/<description>` branch per change; recent merges have typically been squashed, though the repo allows merge commits and rebase too.
 7. **Pi runs as `RAILS_ENV=development`**: The actual Raspberry Pi deployment (sisito's only real production host) runs with `RAILS_ENV=development` against the `sisito_development` MySQL database — that is also why `monitor_performance.rb` hardcodes `database: 'sisito_development'`. The `production:` block in `config/database.yml` references a non-existent `sisito_production` and uses `root` with no password, so it is **not used in practice**. `bin/deploy.sh` defaults `RAILS_ENV` to `development` to match this; override with `RAILS_ENV=production ./bin/deploy.sh` only if the production block is properly configured first. Deployment procedure, pre-checks and post-deploy verification are maintained in a local (gitignored) `.claude/skills/sisito-deploy` skill, not in this file.
 8. Sisimai `to_hash` field rename: sisimai dropped the `smtpagent`/`smtpcommand` keys from `Fact#to_hash` at 5.5.0 (backward-compat aliases for `decodedby`/`command`, kept only through 5.4.x). The direct-SQL ingestion scripts (`update-sisto-db.rb`, `docker/postfix/collect.rb`, and the README/README_ja example) all rebuild these from `decodedby`/`command` and use `Sisimai.rise` (not the removed `Sisimai.make`) as of 2026-07-22 — if you copy this pattern elsewhere, keep both fixes together or the `bounce_mails` INSERT silently stores nil for those two columns
 9. Spring preloader caches the app: `spring` is in the development group and the Pi runs `RAILS_ENV=development`, so a preloaded process keeps the previous app and gems in memory. After a gem change (deploy or a local bundle change) `rails` commands report stale versions until `spring stop` is run or `DISABLE_SPRING=1` is set.

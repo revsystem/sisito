@@ -110,6 +110,8 @@ config.javascript_path = "javascript"
 7.2 → 8.0:
 - `active_support.to_time_preserves_timezone = :zone` — `to_time` の直接呼び出しはアプリ内に無い（grep確認済み）。`new_framework_defaults.rb` の同名設定行を先に削除しておく必要がある（前述）
 - `Regexp.timeout ||= 1`（プロセス全体のグローバル設定） — アプリ内の正規表現は軽量（`/@/`、`/\A\d+\z/`等）で実害なし見込み。ただし `bin/sync-and-ingest.sh`（Pi、git 未追跡）が `rails runner` 経由で Sisimai の解析を同一 Rails プロセス内で回している場合はその処理も対象になる。**未確認**
+- `action_dispatch.strict_freshness = true`（`w9:p2` レビューで追記、Unit 6 の実装時点では見落としていた項目）— `ActionDispatch::Http::Cache::Request#fresh?` の判定を RFC 7232 準拠にする設定で、`fresh_when`/`stale?` 経由でしか効かない。`app`/`lib`/`config` を grep した結果、`fresh_when`・`stale?`・`last_modified`・`http_cache_forever` の使用はゼロで、`expires_in` のヒットは全て `cache_if_production`（`Rails.cache` 側）の引数であり HTTP キャッシュ鮮度判定とは無関係。実害なしと確認済み
+- 補足（`w9:p2` レビューで確認）: `to_time_preserves_timezone` の行は、実際に稼働している rails gem 8.1.3.1 の `configuration.rb` では `when "8.0"` ブロックからも削除されており、文字列自体が存在しない。Unit 4 で `new_framework_defaults.rb` を削除した判断（8.0系のdeprecation警告回避）は結論として正しいが、正確には「8.1.3.1では該当設定がそもそも load_defaults の対象から外れている」という状態になっている
 
 一本化により test/production も `load_defaults 7.0` の対象になる副次効果として、`active_support.key_generator_hash_digest_class = SHA256`（`hash_digest_class` も同様）が test/production 環境にも入る。production ブロックは実運用されていない（CLAUDE.md Gotcha 7）ため実害はないが、変更点として記録しておく。
 

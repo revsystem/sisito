@@ -268,7 +268,7 @@ Unit 5（Gemfileのrailsを~> 8.1へ）は以下の理由でユーザー不在�
 実装はw9:p2（Cursor、Fable 5.1）に委譲、複眼レビューをw9:pA（Cursor、Codex 5.3、RubyGems依存ページで独立検証）に依頼し、両ペインとも「異論なし」で収束。Claude側でも`git diff`を直接確認した。
 
 ### ユニット6: load_defaults 7.2→8.0（並列不可: 依存 = ユニット5）
-- [ ] 6-1: `config/application.rb` の `config.load_defaults` を `8.0` に変更
+- [x] 6-1: `config/application.rb` の `config.load_defaults` を `8.0` に変更
 - [ ] 6-2: CI green を確認
 - [ ] 6-3: 共通 Pi 検証手順 + `bin/sync-and-ingest.sh` の次回cron実行（20:00）ログ確認
 - [ ] 6-4: PR作成・Issue紐付け・マージ

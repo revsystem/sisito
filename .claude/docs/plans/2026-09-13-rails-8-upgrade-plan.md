@@ -270,8 +270,10 @@ Unit 5（Gemfileのrailsを~> 8.1へ）は以下の理由でユーザー不在�
 ### ユニット6: load_defaults 7.2→8.0（並列不可: 依存 = ユニット5）
 - [x] 6-1: `config/application.rb` の `config.load_defaults` を `8.0` に変更
 - [ ] 6-2: CI green を確認
-- [ ] 6-3: 共通 Pi 検証手順 + `bin/sync-and-ingest.sh` の次回cron実行（20:00）ログ確認
-- [ ] 6-4: PR作成・Issue紐付け・マージ
+- [x] 6-3: 共通 Pi 検証手順は完了（隔離worktreeで`Regexp.timeout`が`1.0`に設定されたことを確認、マージ後`bin/deploy.sh`→主要経路200/401確認）。`bin/sync-and-ingest.sh`の次回20:00 cron実行ログ確認は時刻の都合で**未実施（フォローアップ）**
+- [x] 6-4: PR作成・Issue紐付け・マージ（Issue #66、PR #67。w9:p2レビューで`strict_freshness`の見落としを1点指摘、research.mdに追記して反映）
+
+**フォローアップ**: 2026-09-13 20:00以降に `ssh pi@192.168.1.12 'tail -50 /home/pi/sisito/log/sync-and-ingest.log'` 等で次回cron実行を確認し、`Regexp::TimeoutError`が発生していないことを確かめる。
 
 ### ユニット7: load_defaults 8.0→8.1（並列不可: 依存 = ユニット6）
 - [ ] 7-1: `config/application.rb` の `config.load_defaults` を `8.1` に変更

@@ -20,6 +20,13 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
+# `ssh host 'command'` and cron run non-interactive, non-login shells that never
+# source ~/.bashrc/~/.profile, so mise's PATH entry can be missing even though
+# it's installed (the same class of bug fixed in bin/sync-and-ingest.sh for the
+# cron job). Add it explicitly so this script behaves the same whether it's run
+# interactively or not.
+export PATH="$HOME/.local/bin:$PATH"
+
 : "${RAILS_ENV:=development}"
 export RAILS_ENV
 

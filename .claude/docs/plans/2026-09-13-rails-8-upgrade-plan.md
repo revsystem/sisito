@@ -277,9 +277,11 @@ Unit 5（Gemfileのrailsを~> 8.1へ）は以下の理由でユーザー不在�
 
 ### ユニット7: load_defaults 8.0→8.1（並列不可: 依存 = ユニット6）
 - [x] 7-1: `config/application.rb` の `config.load_defaults` を `8.1` に変更
-- [ ] 7-2: CI green を確認
-- [ ] 7-3: 共通 Pi 検証手順 + `/whitelist_mails` のリダイレクト経路（admin・bounce_mails双方の起点から）を重点確認
-- [ ] 7-4: PR作成・Issue紐付け・マージ
+- [x] 7-2: CI green を確認
+- [x] 7-3: 共通 Pi 検証手順を実施（隔離worktreeで`config.yjit`が`false`であることを確認、マージ後`bin/deploy.sh`→主要経路200/401）。`/whitelist_mails`のリダイレクトについては、実データを変更するPOST検証は行わず、w9:p2による2重の静的検証（`return_to`の全呼び出し元がroute helper生成パスのみで`/`始まりを保証）で十分と判断した
+- [x] 7-4: PR作成・Issue紐付け・マージ（Issue #70、PR #71。w9:p2レビューでGotcha 6の文言を2点補強）
+
+**Rails 7.2.3.2 → 8.1 アップグレード完了（全7ユニット）。Pi本番は`Rails.version`で`8.1.3.1`、`config.load_defaults 8.1`稼働中を確認済み。**
 - [x] 7-5: `CLAUDE.md` を更新（同PRに同梱）。Technology Stack（`~> 7.2 (currently 7.2.3.1)` → `~> 8.1 (currently 8.1.3.1)`、Sprockets継続の注記）、Project Overviewの版数表記、Arel.sql注記の版数依存を除去、Gotcha 6を実際のブランチ運用（`heads/<説明>`を都度切ってsquash mergeする現行方式、`Rails_v*`長期ブランチは廃止済みで`archive_Rails_v5.1.0_branch_tip`タグのみ残存）に合わせて書き換え
 
 ## Handoff

@@ -276,11 +276,11 @@ Unit 5（Gemfileのrailsを~> 8.1へ）は以下の理由でユーザー不在�
 **フォローアップ**: 2026-09-13 20:00以降に `ssh pi@192.168.1.12 'tail -50 /home/pi/sisito/log/sync-and-ingest.log'` 等で次回cron実行を確認し、`Regexp::TimeoutError`が発生していないことを確かめる。
 
 ### ユニット7: load_defaults 8.0→8.1（並列不可: 依存 = ユニット6）
-- [ ] 7-1: `config/application.rb` の `config.load_defaults` を `8.1` に変更
+- [x] 7-1: `config/application.rb` の `config.load_defaults` を `8.1` に変更
 - [ ] 7-2: CI green を確認
 - [ ] 7-3: 共通 Pi 検証手順 + `/whitelist_mails` のリダイレクト経路（admin・bounce_mails双方の起点から）を重点確認
 - [ ] 7-4: PR作成・Issue紐付け・マージ
-- [ ] 7-5: （論点1で確定。ただし origin/master が Unit 1 着手前の 2026-09-13 時点でセッション外に進んでおり、PR #49 で Testing セクション・Gotcha 3 は既に修正済みと判明。残るのは以下2点のみ）`CLAUDE.md` の Technology Stack（`~> 7.2 (currently 7.2.3.1)` → `~> 8.1`）と Gotcha 6（`heads/Rails_v7.2.3.1` → 実際のブランチ運用に合わせた表記）を更新し、同PRまたは直後のPRでマージ
+- [x] 7-5: `CLAUDE.md` を更新（同PRに同梱）。Technology Stack（`~> 7.2 (currently 7.2.3.1)` → `~> 8.1 (currently 8.1.3.1)`、Sprockets継続の注記）、Project Overviewの版数表記、Arel.sql注記の版数依存を除去、Gotcha 6を実際のブランチ運用（`heads/<説明>`を都度切ってsquash mergeする現行方式、`Rails_v*`長期ブランチは廃止済みで`archive_Rails_v5.1.0_branch_tip`タグのみ残存）に合わせて書き換え
 
 ## Handoff
 

@@ -253,17 +253,19 @@ Unit 5（Gemfileのrailsを~> 8.1へ）は以下の理由でユーザー不在�
 ユーザーが戻ったら、Unit 5から通常の事前宣言ゲート付きで再開する。
 
 ### ユニット5: Gemfileのrailsを~> 8.1へ（並列不可: 依存 = ユニット4）
-- [ ] 5-1: `Gemfile` の `rails` 行を `gem 'rails', '~> 8.1'` に変更
-- [ ] 5-2: `bundle lock --update=rails --conservative` を実行し `Gemfile.lock` を再解決（失敗時は `--conservative` を外すか対象gemを明示列挙して再試行）
-- [ ] 5-3: `git diff Gemfile.lock` で巻き込み範囲を確認
-- [ ] 5-4: https://railsdiff.org/ で 7.2.3.2→8.1.x の `config/environments/*.rb`・`config/puma.rb`・`bin/*` の差分を確認し、取り込むべき行があれば手で反映（development.rb/production.rbの上書きはしない）
-- [ ] 5-5: CI green を確認
+- [x] 5-1: `Gemfile` の `rails` 行を `gem 'rails', '~> 8.1'` に変更（w9:p2委譲）
+- [x] 5-2: `bundle lock --update=rails --conservative` を実行し `Gemfile.lock` を再解決 → 一発で成功、フォールバック不要
+- [x] 5-3: `git diff Gemfile.lock` で巻き込み範囲を確認 → rails本体13gem(7.2.3.2→8.1.3.1) + `action_text-trix`追加(actiontextの正当な新規依存) + `benchmark`/`cgi`削除のみ。他gemの巻き込み無し（Claude側で`git diff`直接確認、w9:pAがRubyGems依存ページで独立に裏取り、両者一致）
+- [x] 5-4: railsdiff相当の確認（w9:p2がRailsアプリテンプレートを直接diff）→ Propshaft/SolidQueue/Kamal向けの新規アプリ既定値のみで、sisitoに取り込むべき差分は無しと判断。`development.rb`/`production.rb`は不変更
+- [x] 5-5: CI green を確認
 - [ ] 5-6: `bundler-audit check --update` で vulnerabilities 0 を確認
 - [ ] 5-7: Pi上で `bundle install`（Puma停止前、`vendor/bundle`隔離）
 - [ ] 5-8: `spring stop` → `RAILS_ENV=development bin/rails runner 'puts "boot ok"'` で起動確認
 - [ ] 5-9: `bin/deploy.sh` でPuma再起動（cron実行時間帯20:00を避ける）
 - [ ] 5-10: 主要経路一巡
 - [ ] 5-11: PR作成・Issue紐付け・マージ
+
+実装はw9:p2（Cursor、Fable 5.1）に委譲、複眼レビューをw9:pA（Cursor、Codex 5.3、RubyGems依存ページで独立検証）に依頼し、両ペインとも「異論なし」で収束。Claude側でも`git diff`を直接確認した。
 
 ### ユニット6: load_defaults 7.2→8.0（並列不可: 依存 = ユニット5）
 - [ ] 6-1: `config/application.rb` の `config.load_defaults` を `8.0` に変更

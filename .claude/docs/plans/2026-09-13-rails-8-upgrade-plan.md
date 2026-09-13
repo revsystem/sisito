@@ -258,12 +258,12 @@ Unit 5（Gemfileのrailsを~> 8.1へ）は以下の理由でユーザー不在�
 - [x] 5-3: `git diff Gemfile.lock` で巻き込み範囲を確認 → rails本体13gem(7.2.3.2→8.1.3.1) + `action_text-trix`追加(actiontextの正当な新規依存) + `benchmark`/`cgi`削除のみ。他gemの巻き込み無し（Claude側で`git diff`直接確認、w9:pAがRubyGems依存ページで独立に裏取り、両者一致）
 - [x] 5-4: railsdiff相当の確認（w9:p2がRailsアプリテンプレートを直接diff）→ Propshaft/SolidQueue/Kamal向けの新規アプリ既定値のみで、sisitoに取り込むべき差分は無しと判断。`development.rb`/`production.rb`は不変更
 - [x] 5-5: CI green を確認
-- [ ] 5-6: `bundler-audit check --update` で vulnerabilities 0 を確認
-- [ ] 5-7: Pi上で `bundle install`（Puma停止前、`vendor/bundle`隔離）
-- [ ] 5-8: `spring stop` → `RAILS_ENV=development bin/rails runner 'puts "boot ok"'` で起動確認
-- [ ] 5-9: `bin/deploy.sh` でPuma再起動（cron実行時間帯20:00を避ける）
-- [ ] 5-10: 主要経路一巡
-- [ ] 5-11: PR作成・Issue紐付け・マージ
+- [x] 5-6: `bundler-audit check --update` で vulnerabilities 0 を確認（CI ログで "No vulnerabilities found" を確認）
+- [x] 5-7: Pi上での事前検証を、共有`vendor/bundle`に触れる前に隔離git worktree(独自の`vendor/bundle`)で実施。`bundle install`は一度transientなエラー(mise関連、原因不明)で失敗したが再試行で完全にクリーンに成功。`rails runner`起動確認に加え、隔離ポート(1090)で一時Pumaを起動し`/`, `/bounce_mails`, `/whitelist_mails`, `/sender`, `/status`(200)・`/admin`(401)の実HTTPリクエストと、Sprockets/dartsass-sprocketsによるアセット配信(`/assets/application.debug-*.css`が200)を確認。本番Puma(port 1080)は無傷のまま
+- [x] 5-8: 上記の隔離検証で起動確認済み（`Rails.version`が`8.1.3.1`、boot ok）
+- [x] 5-9: マージ後、共有`vendor/bundle`への実際の`bundle install`を含め`bin/deploy.sh`でPuma再起動（14:34、cron実行時間帯20:00と無関係な時間帯）
+- [x] 5-10: 本番デプロイ後に主要経路一巡（200/401、想定通り）。`rails runner`で実際に稼働中のRailsが`8.1.3.1`であることを直接確認
+- [x] 5-11: PR作成・Issue紐付け・マージ（Issue #62、PR #63。実装はw9:p2、複眼レビューをw9:pAに委譲、両者収束）
 
 実装はw9:p2（Cursor、Fable 5.1）に委譲、複眼レビューをw9:pA（Cursor、Codex 5.3、RubyGems依存ページで独立検証）に依頼し、両ペインとも「異論なし」で収束。Claude側でも`git diff`を直接確認した。
 

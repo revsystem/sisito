@@ -19,7 +19,7 @@ Sisito is a Ruby on Rails 8.1 web application that provides a frontend dashboard
 - **Charts**: C3.js for data visualization
 - **Pagination**: Kaminari (20 per page, max 1000 pages)
 - **Health Check**: `Rack::Health` middleware (mounted in `config.ru`)
-- **Bounce Parsing**: Sisimai gem ~> 5.7
+- **Bounce Parsing**: Sisimai gem ~> 5.8
 
 ## Local Environment Constraints (Read First)
 
@@ -132,7 +132,7 @@ bundle exec rails db:migrate:status
 - `blacklisted_label_filter`: Ruby proc (evaluated via `eval`) for filtering blacklist display
 - `shorten_stats`: When true, skips heavy aggregate queries on dashboard
 - `whitelist_callback.whitelisted` / `.unwhitelisted`: External script paths
-- `omniauth.google_client_id` / `google_client_secret` / `hd` / `allow_users`
+- `omniauth.google_client_id` / `google_client_secret` / `full_host` / `hd` / `allow_users` (`full_host` pins the OAuth callback host; see GHSA-m27g-v28p-f9fx)
 - `status.interval`: Monitoring interval in seconds (default 60)
 
 ## Caching Strategy

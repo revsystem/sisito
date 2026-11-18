@@ -7,7 +7,7 @@ end
 gem 'base64', '~> 0.2.0'
 gem 'mutex_m', '~> 0.2.0'
 gem 'rails', '~> 8.1'
-gem 'puma', '~> 8.0', '>= 8.0.2'
+gem 'puma', '~> 8.0', '>= 8.0.4'
 gem 'terser', '~> 1.2'
 gem 'jquery-rails', '~> 4.6'
 gem 'jbuilder', '~> 2.12'
@@ -39,7 +39,7 @@ gem 'clipboard-rails', '~> 1.7', '>= 1.7.1'
 gem 'rack-health', '~> 0.1.2'
 gem 'sisimai', '~> 5.7', '>= 5.7.0'
 
-gem 'omniauth', '~> 2.1', '>= 2.1.2'
+gem 'omniauth', '~> 2.4', '>= 2.4.2'
 gem 'omniauth-google-oauth2', '~> 1.1', '>= 1.1.2'
 
 gem 'momentjs-rails', '~> 2.29', '>= 2.29.4.1'

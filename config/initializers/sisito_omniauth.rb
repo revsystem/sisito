@@ -11,6 +11,12 @@ if Rails.application.config.sisito.dig(:omniauth, :google_client_id)
       provider_options
   end
 
+  # Build the OAuth callback URL from a fixed host instead of the forgeable
+  # Host / X-Forwarded-Host headers (GHSA-m27g-v28p-f9fx, CVE-2026-63183).
+  if (full_host = Rails.application.config.sisito.dig(:omniauth, :full_host))
+    OmniAuth.config.full_host = full_host
+  end
+
   OmniAuth.config.on_failure = Proc.new do |env|
     OmniAuth::FailureEndpoint.new(env).redirect_to_failure
   end

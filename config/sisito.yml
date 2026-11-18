@@ -30,6 +30,7 @@ header_links:
 #omniauth:
 #  google_client_id: ~
 #  google_client_secret: ~
+#  full_host: https://sisito.example.com
 #  hd:
 #    - example.com
 #  allow_users:
